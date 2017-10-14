@@ -1,0 +1,9 @@
+This is where all files associated with Apache POI will go.
+
+1) In Dr. Java, click on the 'Edit' in the toolbar, then 'Preferences'.
+  Edit --> Preferences
+  
+2) Under 'Resouce Locations' in the 'Categories' box, click the 'Add' button under the 'Extra Classpaths' listbox.
+  Resouce Locations --> Add
+  
+3) Go to the ApachePOI folder, and select all of the .jar files. This will add additional class paths to Dr. Java.
