@@ -7,3 +7,9 @@ This is where all files associated with Apache POI will go.
   Resouce Locations --> Add
   
 3) Go to the ApachePOI folder, and select all of the .jar files. This will add additional class paths to Dr. Java.
+
+Currently, the code will only work with Excel 2007 or later.
+
+I got the binary .zip file from here ---> https://poi.apache.org/download.html
+
+
