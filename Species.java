@@ -13,7 +13,6 @@ public class Species {
   private VapourPressure vapourPressure;
   private EnthalpyLiquid enthalpyLiquid;
   private EnthalpyVapour enthalpyVapour;
-  private static ResidualEnthalpy residualEnthalpy;
   
   public Species() {
     
@@ -27,25 +26,8 @@ public class Species {
     return enthalpyLiquid.evaluate(T, Tref, this.Tc);
   }
   
-  public double valuateEnthalpyVapour(double T, double Tref) {
-    double HR = 0;
-    double HRref = 0;
-    
-    if (Species.residualEnthalpy != null) {
-      HR = Species.residualEnthalpy.evaluate(T, this);
-      HRref = Species.residualEnthalpy.evaluate(Tref, this);
-    }
-    
-    return enthalpyVapour.evaluate(T, this.Tb, this.evaluateEnthalpyLiquid(this.Tb, Tref), this.latentHeat) + HR - HRref;
-  }
-  
-  public static void createResidualEnthalpy(boolean create) {
-    if (create) {
-      Species.residualEnthalpy = new ResidualEnthalpy();
-    }
-    else {
-      Species.residualEnthalpy = null;
-    }
+  public double evaluateEnthalpyVapour(double T, double Tref) {
+    return enthalpyVapour.evaluate(T, this.Tb, this.evaluateEnthalpyLiquid(this.Tb, Tref), this.latentHeat);
   }
   
 }
