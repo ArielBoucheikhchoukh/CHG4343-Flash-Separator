@@ -115,10 +115,10 @@ public class Menu {
     }
     
     if (idealCase == 0) {
-      Species.createResidualEnthalpy(false);
+      
     }
     else {
-      Species.createResidualEnthalpy(true);
+      
     }
     
     //return flashSeparator;
