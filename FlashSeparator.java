@@ -1,13 +1,35 @@
-public class FlashSeparator {
+public abstract class FlashSeparator {
  
   private double T;
+  private double P;
+  private Behaviour behaviour;
+  private Stream feedStream;
   
-  public FlashSeparator() {
-    this.T = 0;
+  public FlashSeparator(double T, double P, Stream feedStream) {
+    this.T = T;
+    this.P = P;
+    this.feedStream = feedStream;
   }
+  
+  public FlashSeparator(double P, Stream feedStream) {
+    this.T = 273.15;
+    this.P = P;
+    this.feedStream = feedStream;
+  }
+  
+  public abstract Stream[] flashCalculation();
   
   public void setT(double T) {
    this.T = T; 
+  }
+  
+  protected void setBehaviour(boolean nonIdealBehaviour) {
+    if (!nonIdealBehaviour) {
+     this.behaviour = new Behaviour(); 
+    }
+    else {
+      this.behaviour = new NonIdealBehaviour();
+    }
   }
   
 }

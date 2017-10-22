@@ -1,21 +1,33 @@
 public class Stream {
   
-  private double T;
-  private double P;
-  private double F;
+  private double T; // [K]
+  private double P; // [bar]
+  private double F; // [mol/s]
   private double[] z;
-  private Species[] components;
+  private int[] speciesIndices;
   
-  public Stream() {
-   this.T = 0;
-   this.P = 0;
-   this.F = 0;
-   z = null;
-   components = null;
+  public Stream(int componentCount) {
+   this.T = 273.15;
+   this.P = 10.;
+   this.F = 0.;
+   this.z = new double[componentCount];
+   this.speciesIndices = new int[componentCount];;
   }
   
-  public Stream(double T, double P, double F, double[] z, Species[] components) {
-    
+  public Stream(double F, double[] z, int[] speciesIndices) {
+    this.T = 273.15;
+    this.P = 10.;
+    this.F = F;
+    this.z = z.clone();
+    this.speciesIndices = speciesIndices.clone();
+  }
+  
+  public Stream(double T, double F, double[] z, int[] speciesIndices) {
+    this.T = T;
+    this.P = 10.;
+    this.F = F;
+    this.z = z.clone();
+    this.speciesIndices = speciesIndices.clone();
   }
   
   public double getT() {
@@ -26,6 +38,14 @@ public class Stream {
    this.T = T; 
   }
   
+  public double getP() {
+   return this.P; 
+  }
+  
+  public void setP(double P) {
+   this.P = P; 
+  }
+  
   public double getF() {
    return this.F; 
   }
@@ -34,12 +54,36 @@ public class Stream {
    this.F = F; 
   }
   
-  public void setComponentCount(int componentCount) {
-   this.z = new double[componentCount]; 
+  public double[] getZ() {
+    return this.z.clone();
   }
   
-  public void setZ(double z_i, int i) {
-    this.z[i] = z_i;
+  public void setZ(double[] z) {
+    this.z = z.clone();
+  }
+  
+  public double getZi(int componentIndex) {
+    return this.z[componentIndex];
+  }
+  
+  public void setZi(double z_i, int componentIndex) {
+    this.z[componentIndex] = z_i;
+  }
+  
+  public int[] getSpeciesIndices() {
+    return this.speciesIndices.clone();
+  }
+  
+  public void setSpeciesIndices(int[] speciesIndices) {
+    this.speciesIndices = speciesIndices.clone();
+  }
+  
+  public int getSpeciesIndex(int componentIndex) {
+    return this.speciesIndices[componentIndex];
+  }
+  
+  public void setSpeciesIndex(int speciesIndex, int componentIndex) {
+    this.speciesIndices[componentIndex] = speciesIndex;
   }
   
 }

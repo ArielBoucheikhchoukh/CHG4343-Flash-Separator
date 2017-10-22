@@ -1,134 +1,245 @@
+import java.util.ArrayList;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
- 
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 
 public class Menu {
   
-  private static String workbookFilePath; //FlashSeparatorWorkbook_22.xlsx
-  private static Workbook workbook;
+  private static final String inputFilePath = "IO/Input_22.csv"; //IO/Input_22.csv
+  private static Species[] speciesList;
   
-  public Menu() {
-    
+  
+/**********************************************************************************************************************
+  1) main method : entry point of the program
+----------------------------------------------------------------------------------------------------------------------*/
+  public static void main(String[] args) {
+    Menu.launchMenu(); //Go to method 2
   }
+/*********************************************************************************************************************/
+
   
+/**********************************************************************************************************************
+  2) launchMenu() : starts the menu 
+----------------------------------------------------------------------------------------------------------------------*/
   public static void launchMenu() {
-    try {
-      Menu.launchWorkbook();
-    }
-    catch (IOException e) {
-      System.out.println("I/O Exception: Could not find the Excel workbook.");
-      return;
-    }
-    catch (InvalidFormatException e) {
-      System.out.println("Invalid Format Exception: Format of the workbook is invalid.");
-      return;
-    }
     
-    Menu.launchFlashSeparator();
+    //Initialize the Input File Reader
+    Scanner fileReader;
     
     try {
-      Menu.workbook.close();
-      System.out.println("Connection to workbook successfully closed.");
+      fileReader = new Scanner(new FileInputStream(Menu.inputFilePath));
     }
-    catch (IOException e) {
-      System.out.println("I/O Exception: Could not close the connection to the Excel workbook.");
-    }
-  }
-  
-  public static void launchWorkbook() throws IOException, InvalidFormatException {
-    Menu.workbookFilePath = "Workbook/FlashSeparatorWorkbook_22.xlsx";
-    workbook = new XSSFWorkbook(new File(Menu.workbookFilePath)); 
-      
-    System.out.println("Workbook successfully connected to.");
-  }
-  
-  public static void launchFlashSeparator() {
-    String[] componentNames = null;
-    Stream feedStream = new Stream();
-    
-    //FlashSeparator flashSeparator = Menu.initializeFlashSeparator(componentNames, feedStream);
-    Menu.initializeFlashSeparator(componentNames, feedStream);
-    Species[] speciesList = Menu.readSpeciesData(componentNames);
-  }
-  
-  public static void initializeFlashSeparator(String[] componentNames, Stream feedStream) { //should return a derived object of the the FlashSeparator class
-    
-    //Column Indices
-    int FIRST_COL = 1;
-    int FIRST_SPECIES_COL = 9;
-    
-    //Row Indices
-    int NAME_ROW = 5;
-    int VALUE_ROW = 6;
-    
-    Sheet inputSheet = workbook.getSheetAt(2);
-    Row row = inputSheet.getRow(VALUE_ROW);
-    Row nameRow = inputSheet.getRow(NAME_ROW);
-    
-    //Read Flash Case
-    int flashCase = (int) row.getCell(FIRST_COL).getNumericCellValue();
-    
-    //Read Ideal/Non-Ideal Case
-    int idealCase = (int) row.getCell(FIRST_COL + 1).getNumericCellValue();
-    
-    //Read Temperature
-    double T = row.getCell(FIRST_COL + 2).getNumericCellValue();
-    
-    //Read Pressure
-    double P = row.getCell(FIRST_COL + 3).getNumericCellValue();
-    
-    //Read Flowrate
-    feedStream.setF(row.getCell(FIRST_COL + 4).getNumericCellValue());
-    
-    int componentCount = 0;
-    while (nameRow.getCell(FIRST_SPECIES_COL + componentCount) != null || componentCount > 100) {
-      componentCount++;
-      System.out.println(componentCount);
+    catch (FileNotFoundException e) {
+      System.out.println("Input file not found.");
+      return;
     }
     
-    componentNames = new String[componentCount];
-    feedStream.setComponentCount(componentCount);
+    fileReader.useDelimiter(",");
+    
+    //Build the Flash Separator
+    FlashSeparator flashSeparator;
+    
+    try {
+      flashSeparator = Menu.buildFlashSeparator(fileReader); //Go to method 3
+      fileReader.close();
+    }
+    catch (NoSuchElementException e) {
+      System.out.println("Error reading input file.");
+      return;
+    }
+    
+    //Flash Calculation
+    Stream[] flashStreams = flashSeparator.flashCalculation();
+    
+    //Write Results of Flash Calculation to Output File
+    //...
+  }
+/*********************************************************************************************************************/
+  
+  
+/**********************************************************************************************************************
+  3) buildFlashSeparaor() : reads the species data and the user input from the input file and builds a FlashSeparator
+----------------------------------------------------------------------------------------------------------------------*/
+  public static FlashSeparator buildFlashSeparator(Scanner fileReader) {
+    
+    Scanner lineReader;
+    
+    /* Array of Component Names
+    -----------------------------------------------------------------------------------------------------------------*/
+    fileReader.nextLine(); //Skip Row 1
+    
+    lineReader = new Scanner(fileReader.nextLine()); //Store Row 2
+    lineReader.useDelimiter(",");
+    
+    for (int i = 0; i < 7; i++) {
+      lineReader.next(); //Skip to Cell H2
+    }
+    
+    //Store the names of the components in the feed stream
+    ArrayList<String> componentNames = new ArrayList<String>();
+    while (lineReader.hasNext()) {
+      String name = lineReader.next(); //Move to next Column
+      if (name.equals("") || name == null) {
+        break;
+      }
+      else {
+        componentNames.add(name);
+      }
+    }
+    int componentCount = componentNames.size();
+    lineReader.close();
+    
+    /* Read Cases and Operating Conditions of the Flash Separator
+    -----------------------------------------------------------------------------------------------------------------*/
+    int flashCase = fileReader.nextInt(); // Move to A3
+    int behaviourCase = fileReader.nextInt(); // Move to B3 
+    
+    double T = fileReader.nextDouble(); // Move to Cell C3
+    double P = fileReader.nextDouble(); // Move to Cell D3
+    double F = fileReader.nextDouble(); // Move to Cell E3
+    
+    for (int i = 0; i < 3; i++) {
+      fileReader.next(); // Skip to Cell H3
+    }
+    
+    //Store component mole fractions
+    double[] z = new double[componentCount];
     for (int i = 0; i < componentCount; i++) {
-     componentNames[i] = nameRow.getCell(FIRST_SPECIES_COL + i).getStringCellValue();
-     feedStream.setZ(row.getCell(FIRST_SPECIES_COL + i).getNumericCellValue(), i);
+      z[i] = fileReader.nextDouble(); //Move to next Column
     }
     
-    //FlashSeparator flashSeparator = null;
-    if (flashCase == 0) {
-      //flashSeparator = new FlashSeparator(); //should be the derived class for case 1
-      feedStream.setT(T);
-    }
-    else if (flashCase == 1) {
-      //flashSeparator = new FlashSeparator(); //should be the derived class for case 2
-      feedStream.setT(T);
-    }
-    else {
-      //flashSeparator = new FlashSeparator(); //should be the derived class for case 3
+    /* Store Species Data
+    -----------------------------------------------------------------------------------------------------------------*/
+    for (int i = 0; i < 7; i++) {
+      fileReader.nextLine(); //Skip to Row 10
     }
     
-    if (idealCase == 0) {
+    //Create a deep copy of the component names array
+    ArrayList<String> componentsToStore = new ArrayList<String>();
+    for (int i = 0; i < componentCount; i++) {
+      componentsToStore.add(componentNames.get(i));
+    }
+    
+    int speciesIndex = 0;
+    Menu.speciesList = new Species[componentCount]; // Initialize the species array
+    
+    //Read and store the properties of each species present in the feed stream
+    while (fileReader.hasNextLine() || componentsToStore.size() > 0) {
+      lineReader = new Scanner(fileReader.nextLine()); // Store current row
+      lineReader.useDelimiter(",");
       
-    }
-    else {
+      String name = lineReader.next(); // Store the name of the species in Column A
+      System.out.println(name);
       
+      // Check whether the file reader has reached the end of the file
+      if (name.equals("") || name == null) { 
+        
+        //End of the Input File
+        break; 
+      }
+      else {
+        
+        //Species name is not blank - continue reading
+        for (int i = 0; i < componentsToStore.size(); i++) {
+          
+          System.out.println("Compare to: " + componentsToStore.get(i));
+          
+          //Check whether the species is among the components of the feed stream
+          if (name.equals(componentsToStore.get(i))) {
+            componentsToStore.remove(i); // Since the data for the current component is about to be stored, remove it from the array
+            
+            //Store each token in the rest of the line in the properties array
+            double[] properties = new double[Species.propertyCount];
+            for (int j = 0; j < Species.propertyCount; j++) {
+              properties[j] = lineReader.nextDouble(); // Next column
+            }
+            
+            //Create a new species object
+            Menu.speciesList[speciesIndex] = new Species(name, speciesIndex, properties);
+            
+            speciesIndex++;
+            
+            break;
+          }
+        }
+      }
+      
+      lineReader.close();
     }
     
-    //return flashSeparator;
+    /* Create FlashSeparator and Feed Stream Objects
+    -----------------------------------------------------------------------------------------------------------------*/
+    int[] speciesIndices = Menu.convertSpeciesNamesToIndices(componentNames.toArray(new String[componentNames.size()]));
+    FlashSeparator flashSeparator;
+    switch (flashCase) {
+      
+      case 0: //Isothermal Non-Adiabatic Operation; Find Q
+        flashSeparator = new IsothermalHeat(T, P, F, z, speciesIndices);
+        break;
+        
+      case 1: //Adiabatic Operation; Find the Flash Temperature
+        flashSeparator = new AdiabaticFlashTemp(T, P, F, z, speciesIndices);
+        break;
+        
+      default: //Adiabatic Operation; Find the Feed Temperature
+        flashSeparator = new AdiabaticFeedTemp(T, P, F, z, speciesIndices);
+        break;
+    }
+    
+    //Create Behaviour Object
+    switch (behaviourCase) {
+      case 0: //Ideal Behaviour
+        flashSeparator.setBehaviour(false);
+        break;
+        
+      default: //Non-Ideal Behaviour
+        flashSeparator.setBehaviour(true);
+        break;
+    }
+    
+    return flashSeparator;
   }
+/*********************************************************************************************************************/
+
+
+/**********************************************************************************************************************
+  4) getSpecies() : returns a copy of the species at the given index
+----------------------------------------------------------------------------------------------------------------------*/
+  public static Species getSpecies(int speciesIndex) {
+    return new Species(Menu.speciesList[speciesIndex]);
+  }
+/*********************************************************************************************************************/
   
-  public static Species[] readSpeciesData(String[] componentNames) {
-    Species[] speciesList = null;
-    
-    Sheet speciesDataSheet = workbook.getSheetAt(1);
-    
-    return speciesList;
+
+/**********************************************************************************************************************
+  5) getSpeciesName() : returns a copy of the name of a species at the given index
+----------------------------------------------------------------------------------------------------------------------*/
+  public static String getSpeciesName(int speciesIndex) {
+    return Menu.speciesList[speciesIndex].getName();
   }
+/*********************************************************************************************************************/
+  
+  
+/**********************************************************************************************************************
+  6) convertSpeciesNamesToIndices() : converts an array of species names into an array of corresponding species indices
+----------------------------------------------------------------------------------------------------------------------*/
+  public static int[] convertSpeciesNamesToIndices(String[] speciesNames) {
+    
+    int[] speciesIndices = new int[speciesNames.length];
+    
+    for (int i = 0; i < speciesNames.length; i++) {
+      for (int j = 0; j < Menu.speciesList.length; j++) {
+        if (speciesNames[i] == Menu.getSpeciesName(j)) {
+          speciesIndices[i] = j;
+        }
+      }
+    }
+    
+    return speciesIndices;
+  }
+/*********************************************************************************************************************/
+  
 }
