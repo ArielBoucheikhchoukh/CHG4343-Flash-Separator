@@ -14,13 +14,13 @@
 public class ValidateRootFinder {
   public static void main(String[] args) {
    
-    //RootFinder rootFinder = new BisectionRootFinder(0.001);
-    RootFinder rootFinder = new NewtonRaphsonRootFinder(0.001);
+    //RootFinder rootFinder = new BisectionRootFinder();
+    RootFinder rootFinder = new NewtonRaphsonRootFinder();
     
     double answer = 0.;
     
     try {
-      answer = rootFinder.findRoot(new ValidationFunction(-50., 100.), 0.02, 20., 20000);
+      answer = rootFinder.findRoot(new ValidationFunction(-50., 100.), 0.02, 20., 0.001, 20000);
       System.out.println("\nThe root is: " + answer);
     }
     catch (NumericalMethodException e) {

@@ -1,16 +1,12 @@
 public class BisectionRootFinder extends RootFinder {
   
-  public BisectionRootFinder(double tolerance) {
-    super(tolerance);
-  }
-  
-  protected double rootFindingMethod(Function f, double xL, double incrementLength, int maxEvaluationCount) 
+  protected double rootFindingMethod(Function f, double xL, double incrementLength, double tolerance, int maxEvaluationCount) 
     throws NumericalMethodException {
    
     double xR = 0.;
-    
     double lowerBound = xL;
     boolean foundRoot = false;
+    int evaluationCount = 0;
     
     do {
       double f_xR = 0;
@@ -18,20 +14,21 @@ public class BisectionRootFinder extends RootFinder {
       
       System.out.println("Previous Lower Bound : " + lowerBound);
       
-      double[] bounds = super.incrementalSearch(f, lowerBound, incrementLength, maxEvaluationCount);
+      double[] bounds = super.incrementalSearch(f, lowerBound, incrementLength, tolerance, evaluationCount, maxEvaluationCount);
       
       xL = bounds[0];
       double xU = bounds[1];
       lowerBound = xU;
+      evaluationCount = (int) bounds[2];
       
       double f_xL = f.evaluate(xL);
       double f_xU = f.evaluate(xU);
-      super.increaseEvaluationCount(2);
+      evaluationCount += 2;
       
       System.out.println("xL = " + xL + " and xU = " + xU);
       
       do {
-        super.checkEvaluationCount(maxEvaluationCount);
+        super.checkEvaluationCount(evaluationCount, maxEvaluationCount);
         
         xR = 0.5*(xL + xU);
         f_xR = f.evaluate(xR);
@@ -49,12 +46,13 @@ public class BisectionRootFinder extends RootFinder {
         }
         
         error = (xU - xL)/2;
-        super.increaseEvaluationCount(3);
+        evaluationCount += 3;
         
-      } while (error > super.getTolerance());
+      } while (error > tolerance);
       
       xR = 0.5*(xL + xU);
-      foundRoot = !super.checkForAsymptote(f, xR);
+      foundRoot = !super.checkForAsymptote(f, xR, tolerance);
+      evaluationCount += 2;
       
     } while (!foundRoot);
     

@@ -13,8 +13,8 @@ public class Menu {
   
   
 /**********************************************************************************************************************
-  1) main method : entry point of the program
-----------------------------------------------------------------------------------------------------------------------*/
+  1) Main Method : Entry point of the program.
+---------------------------------------------------------------------------------------------------------------------*/
   public static void main(String[] args) {
     Menu.launchMenu(); //Go to method 2
   }
@@ -22,8 +22,8 @@ public class Menu {
 
   
 /**********************************************************************************************************************
-  2) launchMenu() : starts the menu 
-----------------------------------------------------------------------------------------------------------------------*/
+  2) launchMenu() : Starts the menu. 
+---------------------------------------------------------------------------------------------------------------------*/
   public static void launchMenu() {
     
     //Initialize the Input File Reader
@@ -52,17 +52,24 @@ public class Menu {
     }
     
     //Flash Calculation
-    Stream[] flashStreams = flashSeparator.flashCalculation();
+    try {
+      Stream[] flashStreams = flashSeparator.flashCalculation();
+    }
+    catch (FlashCalculationException e) {
+      System.out.println(e.getMessage());
+    }
     
     //Write Results of Flash Calculation to Output File
     //...
+    
+    System.out.println("Program successfully run.");
   }
 /*********************************************************************************************************************/
   
   
 /**********************************************************************************************************************
-  3) buildFlashSeparaor() : reads the species data and the user input from the input file and builds a FlashSeparator
-----------------------------------------------------------------------------------------------------------------------*/
+  3) buildFlashSeparaor() : Reads the species data and the user input from the input file and builds a FlashSeparator.
+---------------------------------------------------------------------------------------------------------------------*/
   public static FlashSeparator buildFlashSeparator(Scanner fileReader) {
     
     Scanner lineReader;
@@ -206,16 +213,16 @@ public class Menu {
 
 
 /**********************************************************************************************************************
-  4) getSpecies() : returns a copy of the species at the given index
+  4) getSpecies() : Returns a copy of the species at the given index.
 ----------------------------------------------------------------------------------------------------------------------*/
   public static Species getSpecies(int speciesIndex) {
-    return new Species(Menu.speciesList[speciesIndex]);
+    return new Species(Menu.speciesList[speciesIndex]); // Guarantees data integrity, but very wasteful...
   }
 /*********************************************************************************************************************/
   
 
 /**********************************************************************************************************************
-  5) getSpeciesName() : returns a copy of the name of a species at the given index
+  5) getSpeciesName() : Returns a copy of the name of a species at the given index.
 ----------------------------------------------------------------------------------------------------------------------*/
   public static String getSpeciesName(int speciesIndex) {
     return Menu.speciesList[speciesIndex].getName();
@@ -224,7 +231,7 @@ public class Menu {
   
   
 /**********************************************************************************************************************
-  6) convertSpeciesNamesToIndices() : converts an array of species names into an array of corresponding species indices
+  6) convertSpeciesNamesToIndices() : Converts an array of species names into an array of corresponding species indices.
 ----------------------------------------------------------------------------------------------------------------------*/
   public static int[] convertSpeciesNamesToIndices(String[] speciesNames) {
     

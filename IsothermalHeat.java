@@ -1,19 +1,29 @@
-//Case 1
+/*Case 1*/
 
 public class IsothermalHeat extends FlashSeparator {
   
-  public IsothermalHeat(double T, double tankP, double F, double[] z, int[] componentIndices) {
-    super(T, tankP, new Stream(T, F, z, componentIndices));
+/**********************************************************************************************************************
+  1) Constructor
+---------------------------------------------------------------------------------------------------------------------*/
+  public IsothermalHeat(double T, double tankP, double F, double[] z, int[] speciesIndices) {
+    super(T, tankP, new Stream(T, F, z, speciesIndices));
   }
+/*********************************************************************************************************************/
   
-  public Stream[] flashCalculation() {
+  
+/**********************************************************************************************************************
+  2) falshCalculation()
+---------------------------------------------------------------------------------------------------------------------*/
+  public Stream[] flashCalculation() throws FlashCalculationException {
+    
+    
+    
     Stream[] flashStreams = new Stream[2];
+    
+    
     
     return flashStreams;
   }
-  
-  public void setBehaviour(boolean nonIdealBehaviour) {
-    super.setBehaviour(nonIdealBehaviour);
-  }
+/*********************************************************************************************************************/
   
 }

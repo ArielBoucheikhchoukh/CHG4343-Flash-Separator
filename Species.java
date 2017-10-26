@@ -107,6 +107,27 @@ public class Species {
 /*********************************************************************************************************************/
   
   
+  public double[] getPhysicalProperties() {
+    return new double[]{this.molarMass, this.Tb, this.latentHeat, this.accentricFactor, this.Tc, this.Pc, this.Vc, this.Zc}; 
+  }
+  
+  public double evaluateVapourPressure(double T) {
+    return this.correlations[Species.VAPOUR_PRESSURE].evaluate(new double[]{T});
+  }
+  
+  public double evaluateEnthalpyLiquid(double T, double Tref) {
+    return this.correlations[Species.ENTHALPY_LIQUID].evaluate(new double[]{T, Tref, this.Tc});
+  }
+  
+  public double evaluateEnthalpyVapour(double T, double Tref) {
+    double hL = this.correlations[Species.ENTHALPY_LIQUID].evaluate(new double[]{Tb, Tref, this.Tc});
+    return this.correlations[Species.ENTHALPY_VAPOUR].evaluate(new double[]{T, this.Tb, hL, this.latentHeat});
+  }
+  
+  public double evaluateEnthalpyVapour(double T, double Tref, double hL) {
+    return this.correlations[Species.ENTHALPY_VAPOUR].evaluate(new double[]{T, this.Tb, hL, this.latentHeat});
+  }
+  
   public String getName() {
    return this.name; 
   }
@@ -181,23 +202,6 @@ public class Species {
   
   public Correlation getCorrelation(int correlationIndex) {
    return (Correlation) this.correlations[correlationIndex].clone(); 
-  }
-  
-  public double[] getPhysicalProperties() {
-    return new double[]{this.molarMass, this.Tb, this.latentHeat, this.accentricFactor, this.Tc, this.Pc, this.Vc, this.Zc}; 
-  }
-  
-  public double evaluateVapourPressure(double T) {
-    return this.correlations[Species.VAPOUR_PRESSURE].evaluate(new double[]{T});
-  }
-  
-  public double evaluateEnthalpyLiquid(double T, double Tref) {
-    return this.correlations[Species.ENTHALPY_LIQUID].evaluate(new double[]{T, Tref, this.Tc});
-  }
-  
-  public double evaluateEnthalpyVapour(double T, double Tref) {
-    double hL = this.correlations[Species.ENTHALPY_LIQUID].evaluate(new double[]{Tb, Tref, this.Tc});
-    return this.correlations[Species.ENTHALPY_VAPOUR].evaluate(new double[]{T, this.Tb, hL, this.latentHeat});
   }
   
 }
