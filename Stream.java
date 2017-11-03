@@ -27,7 +27,7 @@ public class Stream {
   
   
 /**********************************************************************************************************************
-  1) Constructor B: Used by AdiabaticFeedTemp to construct its feed stream object. 
+  2) Constructor B: Used by AdiabaticFeedTemp to construct its feed stream object. 
 ---------------------------------------------------------------------------------------------------------------------*/
   public Stream(double F, double[] z, int[] speciesIndices) {
     this.T = 273.15;
@@ -43,7 +43,7 @@ public class Stream {
   
   
 /**********************************************************************************************************************
-  1) Constructor C: Used by IsothermalHeat and AdiabaticFlashTemp to construct their feed stream objects.
+  3) Constructor C: Used by IsothermalHeat and AdiabaticFlashTemp to construct their feed stream objects.
 ---------------------------------------------------------------------------------------------------------------------*/
   public Stream(double T, double F, double[] z, int[] speciesIndices) {
     this.T = T;
@@ -59,7 +59,7 @@ public class Stream {
   
   
 /**********************************************************************************************************************
-  1) Copy Constructor 
+  4) Copy Constructor 
 ---------------------------------------------------------------------------------------------------------------------*/
   public Stream(Stream source) {
     this.T = source.T;
@@ -74,7 +74,7 @@ public class Stream {
 /*********************************************************************************************************************/
   
   
-  public double evaluateStreamEnthalpy(double T, double Tref) {
+  public double evaluateStreamEnthalpy(double T, double Tref) throws FunctionException, NumericalMethodException {
    
     double hL_i = 0.; 
     double Hv_i = 0.; 

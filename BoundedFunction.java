@@ -8,23 +8,23 @@ public abstract class BoundedFunction implements Function {
     this.maxX = maxX;
   }
   
-  public double evaluate(double x) throws OutOfFunctionBoundsException {
+  public double evaluate(double x, double[] constants) throws FunctionException, NumericalMethodException {
     if (x < this.minX || x > this.maxX) {
       throw new OutOfFunctionBoundsException();
     }
-    return this.evaluateWithinBounds(x);
+    return this.evaluateWithinBounds(x, constants);
   }
   
-  public double evaluateDerivative(double x) throws OutOfFunctionBoundsException {
+  public double evaluateDerivative(double x, double[] constants) throws FunctionException, NumericalMethodException {
     if (x < this.minX || x > this.maxX) {
      throw new OutOfFunctionBoundsException();
     }
-    return this.evaluateDerivativeWithinBounds(x);
+    return this.evaluateDerivativeWithinBounds(x, constants);
   }
   
-  protected abstract double evaluateWithinBounds(double x);
+  protected abstract double evaluateWithinBounds(double x, double[] constants) throws FunctionException, NumericalMethodException;
   
-  protected abstract double evaluateDerivativeWithinBounds(double x);
+  protected abstract double evaluateDerivativeWithinBounds(double x, double[] constants) throws FunctionException, NumericalMethodException;
   
   protected double getMinX() {
    return this.minX; 

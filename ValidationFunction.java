@@ -9,11 +9,11 @@ public class ValidationFunction extends BoundedFunction {
     super(minX, maxX);
   }
   
-  protected double evaluateWithinBounds(double x) {
+  protected double evaluateWithinBounds(double x, double[] constants) {
     return (667.38/x) * (1 - Math.pow(Math.E, -0.146843 * x)) - 40;
   }
   
-  protected double evaluateDerivativeWithinBounds(double x) {
+  protected double evaluateDerivativeWithinBounds(double x, double[] constants) {
     return (667.38/x) * (0.146843 * Math.pow(Math.E, -0.146843 * x)) 
       + (-667.38/Math.pow(x, 2)) * (1 - Math.pow(Math.E, -0.146843 * x));
   }

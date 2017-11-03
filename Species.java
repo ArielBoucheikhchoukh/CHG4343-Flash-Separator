@@ -1,5 +1,3 @@
-import java.util.HashMap;
-
 public class Species {
   
   private static final int VAPOUR_PRESSURE = 0;
@@ -111,21 +109,21 @@ public class Species {
     return new double[]{this.molarMass, this.Tb, this.latentHeat, this.accentricFactor, this.Tc, this.Pc, this.Vc, this.Zc}; 
   }
   
-  public double evaluateVapourPressure(double T) {
-    return this.correlations[Species.VAPOUR_PRESSURE].evaluate(new double[]{T});
+  public double evaluateVapourPressure(double T) throws FunctionException, NumericalMethodException {
+    return this.correlations[Species.VAPOUR_PRESSURE].evaluate(T, null);
   }
   
-  public double evaluateEnthalpyLiquid(double T, double Tref) {
-    return this.correlations[Species.ENTHALPY_LIQUID].evaluate(new double[]{T, Tref, this.Tc});
+  public double evaluateEnthalpyLiquid(double T, double Tref) throws FunctionException, NumericalMethodException {
+    return this.correlations[Species.ENTHALPY_LIQUID].evaluate(T, new double[]{Tref, this.Tc});
   }
   
-  public double evaluateEnthalpyVapour(double T, double Tref) {
-    double hL = this.correlations[Species.ENTHALPY_LIQUID].evaluate(new double[]{Tb, Tref, this.Tc});
-    return this.correlations[Species.ENTHALPY_VAPOUR].evaluate(new double[]{T, this.Tb, hL, this.latentHeat});
+  public double evaluateEnthalpyVapour(double T, double Tref) throws FunctionException, NumericalMethodException {
+    double hL = this.correlations[Species.ENTHALPY_LIQUID].evaluate(this.Tb, new double[]{Tref, this.Tc});
+    return this.correlations[Species.ENTHALPY_VAPOUR].evaluate(T, new double[]{this.Tb, hL, this.latentHeat});
   }
   
-  public double evaluateEnthalpyVapour(double T, double Tref, double hL) {
-    return this.correlations[Species.ENTHALPY_VAPOUR].evaluate(new double[]{T, this.Tb, hL, this.latentHeat});
+  public double evaluateEnthalpyVapour(double T, double Tref, double hL) throws FunctionException, NumericalMethodException {
+    return this.correlations[Species.ENTHALPY_VAPOUR].evaluate(T, new double[]{this.Tb, hL, this.latentHeat});
   }
   
   public String getName() {

@@ -14,7 +14,7 @@ public class IsothermalHeat extends FlashSeparator {
 /**********************************************************************************************************************
   2) falshCalculation()
 ---------------------------------------------------------------------------------------------------------------------*/
-  public Stream[] flashCalculation() throws FlashCalculationException {
+  public Stream[] flashCalculation() throws FlashCalculationException, FunctionException, NumericalMethodException {
     
     Stream feedStream = super.getFeedStream();
     Stream flashStream = new Stream(feedStream);
@@ -27,7 +27,7 @@ public class IsothermalHeat extends FlashSeparator {
                                                           new Stream[]{new Stream(flashStream)}, super.getBehaviour(), 0, 
                                                           1000000);
     
-    super.setQ(enthalpyBalance.evaluate(0, Tref));
+    super.setQ(enthalpyBalance.evaluate(0., new double[]{Tref}));
     
     Stream[] flashStreams = new Stream[2]; //maybe call some FlashSeparator method to return separate liquid and vapour streams
     

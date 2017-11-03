@@ -1,5 +1,11 @@
+/* Evaluates the enthalpy of a species in the vapour phase.  
+ * T = [K]
+ * H = [J/mol*K]
+ */
+
 public class EnthalpyVapour extends Correlation {
   
+  public static final int constantCount = 4;
   private static final double R = 8.314;
   
   public EnthalpyVapour() {
@@ -10,12 +16,12 @@ public class EnthalpyVapour extends Correlation {
     super(C, minX, maxX, form);
   }
   
-  public double evaluate(double[] x) {
+  public double evaluateWithinBounds(double x, double[] constants)  throws FunctionException, NumericalMethodException {
     
-    double T = x[0];
-    double Tb = x[1];
-    double hL = x[2];
-    double lambda = x[3];
+    double T = x;
+    double Tb = constants[0];
+    double hL = constants[1];
+    double lambda = constants[2];
     double[] C = super.getC();
     
     double Hv = this.R * ((C[0] * (T - Tb)) 
@@ -26,8 +32,23 @@ public class EnthalpyVapour extends Correlation {
     return hL + lambda + Hv;
   }
   
+  public double evaluateDerivativeWithinBounds(double x, double[] constants) throws FunctionException, NumericalMethodException {
+     double T = x;
+     double Tb = constants[0];
+     double dhLdT = constants[1];
+     double[] C = super.getC();
+     
+     double dHvdT = this.R 
+       * (C[0] 
+            + C[1] * T
+            + C[2] * Math.pow(T, 2) 
+            + C[3] * Math.pow(T, -2));
+     
+     return dhLdT + dHvdT;
+  }
+  
   public int getConstantCount() {
-    return 4;
+    return EnthalpyVapour.constantCount;
   }
   
 }

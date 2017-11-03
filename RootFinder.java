@@ -7,8 +7,8 @@ public abstract class RootFinder {
                   startPoint can either be taken to be the lower bound or starting point of an incremental search, or 
                   as an initial guess.
 ----------------------------------------------------------------------------------------------------------------------*/
-  protected double findRoot(Function f, double startPoint, double incrementLength, double tolerance, int maxEvaluationCount) 
-    throws NumericalMethodException {
+  protected double findRoot(Function f, double[] constants, double startPoint, double incrementLength, double tolerance, int maxEvaluationCount) 
+    throws NumericalMethodException, FunctionException {
     
     /* Check Integrity of Root Finding Parameters
     -----------------------------------------------------------------------------------------------------------------*/
@@ -38,17 +38,17 @@ public abstract class RootFinder {
     
     /* Find the Root
     -----------------------------------------------------------------------------------------------------------------*/
-    if (f.evaluate(startPoint) == 0.) { // Check if startPoint is a root
+    if (f.evaluate(startPoint, constants) == 0.) { // Check if startPoint is a root
       return startPoint; 
     }
     else if (isBounded) { // Check if the upper bound is a root in the case of a bounded function
-      if (f.evaluate(upperBound) == 0.) { 
+      if (f.evaluate(upperBound, constants) == 0.) { 
         return upperBound;
       }
     }
     System.out.println("start point = " + startPoint);
     //Check within the function bounds
-    return this.rootFindingMethod(f, startPoint, incrementLength, tolerance, maxEvaluationCount); //Go to method (2)
+    return this.rootFindingMethod(f, constants, startPoint, incrementLength, tolerance, maxEvaluationCount); //Go to method (2)
   }
 /*********************************************************************************************************************/
   
@@ -56,8 +56,9 @@ public abstract class RootFinder {
 /**********************************************************************************************************************
   2) rootFindingMethod() : Finds a single root of function f; to be overriden by children of RootFinder.
 ----------------------------------------------------------------------------------------------------------------------*/
-  protected abstract double rootFindingMethod(Function f, double xL, double incrementLength, double tolerance, int maxEvaluationCount) 
-    throws NumericalMethodException;
+  protected abstract double rootFindingMethod(Function f, double[] constants, double xL, double incrementLength, 
+                                              double tolerance, int maxEvaluationCount) 
+    throws NumericalMethodException, FunctionException;
 /*********************************************************************************************************************/
   
   
@@ -69,8 +70,8 @@ public abstract class RootFinder {
                            returnParameters[1] = xU
                            returnParameters[2] = evaluationCount
 ----------------------------------------------------------------------------------------------------------------------*/
-  protected double[] incrementalSearch(Function f, double xL, double incrementLength, double tolerance, int evaluationCount, int maxEvaluationCount) 
-    throws NumericalMethodException {
+  protected double[] incrementalSearch(Function f, double[] constants, double xL, double incrementLength, double tolerance, int evaluationCount, int maxEvaluationCount) 
+    throws NumericalMethodException, FunctionException {
     
     double[] returnParameters = new double[3];
     
@@ -86,7 +87,7 @@ public abstract class RootFinder {
       System.out.println("xL = " + xL + ", Increment Length = " + incrementLength);
       int rootCount = 0;
       double x = xL;
-      double sign = Math.signum(f.evaluate(x));
+      double sign = Math.signum(f.evaluate(x, constants));
       double newSign = 0;
       evaluationCount++;
       
@@ -94,7 +95,7 @@ public abstract class RootFinder {
         this.checkEvaluationCount(evaluationCount, maxEvaluationCount);
         
         x += tolerance * incrementLength; // increase x by the error tolerance
-        newSign = Math.signum(f.evaluate(x)); // update the sign of f(x)
+        newSign = Math.signum(f.evaluate(x, constants)); // update the sign of f(x)
         evaluationCount++;
         
         if (newSign != sign) { // Check whether the signs of f(x_i) and f(x_i-1) differ 
@@ -140,13 +141,14 @@ public abstract class RootFinder {
 /**********************************************************************************************************************
   5) checkForAsymptote() : Checks whether the critical point x is a root (false) or an asymptote (true). 
 ----------------------------------------------------------------------------------------------------------------------*/
-  protected boolean checkForAsymptote(Function f, double x, double tolerance) throws NumericalMethodException {
-    if (Math.abs(f.evaluate(x + 2 * tolerance)) >  Math.abs(f.evaluate(x))) {
+  protected boolean checkForAsymptote(Function f, double[] constants, double x, double tolerance) 
+    throws FunctionException, NumericalMethodException {
+    
+    if (Math.abs(f.evaluate(x + 2 * tolerance, constants)) >  Math.abs(f.evaluate(x, constants))) {
       return false;
     }
     else {
-      System.out.println("Asymptote at x = " + x + " --- " + Math.abs(f.evaluate(x)) + " > " 
-                           + Math.abs(f.evaluate(x + 2*tolerance))) ;
+      System.out.println("Asymptote at x = " + x);
      return true; 
     }
   }

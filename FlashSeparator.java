@@ -20,7 +20,7 @@ public abstract class FlashSeparator {
     this.feedStream = new Stream(feedStream);
   }
   
-  public abstract Stream[] flashCalculation() throws FlashCalculationException;
+  public abstract Stream[] flashCalculation() throws FlashCalculationException, FunctionException, NumericalMethodException;
   
   protected void flash(Stream flashStream) {
     this.behaviour.flash(flashStream); /* This method should perform a dew-point/bubble-point calculation,
@@ -62,7 +62,7 @@ public abstract class FlashSeparator {
   }
   
   protected Behaviour getBehaviour() {
-   return new Behaviour(this.behaviour); 
+    return this.behaviour.clone(); 
   }
   
   protected void setBehaviour(boolean nonIdealBehaviour) {

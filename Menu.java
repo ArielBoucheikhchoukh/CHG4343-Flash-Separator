@@ -55,8 +55,8 @@ public class Menu {
     try {
       Stream[] flashStreams = flashSeparator.flashCalculation();
     }
-    catch (FlashCalculationException e) {
-      System.out.println(e.getMessage());
+    catch (Exception e) {
+      System.out.println(e.getMessage()); 
     }
     
     //Write Results of Flash Calculation to Output File

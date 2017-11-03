@@ -47,7 +47,7 @@ public class EnthalpyBalance extends BoundedFunction {
                               If Q is positive, then energy must be added to the system.
                               If Q is negative, then energy must be removed from the system.
 ---------------------------------------------------------------------------------------------------------------------*/
-  protected double evaluateWithinBounds(double x) {
+  protected double evaluateWithinBounds(double x, double[] constants) {
     double Q = 0;
     
     if (this.unknownTempStreams != null) {
@@ -77,7 +77,7 @@ public class EnthalpyBalance extends BoundedFunction {
   }
 /*********************************************************************************************************************/
   
-  protected double evaluateDerivativeWithinBounds(double x) {
+  protected double evaluateDerivativeWithinBounds(double x, double[] constants) {
     return 0; // temporary
   }
   
