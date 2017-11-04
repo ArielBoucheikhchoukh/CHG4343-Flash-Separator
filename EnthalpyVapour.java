@@ -16,7 +16,7 @@ public class EnthalpyVapour extends Correlation {
     super(C, minX, maxX, form);
   }
   
-  public double evaluateWithinBounds(double x, double[] constants)  throws FunctionException, NumericalMethodException {
+  protected double evaluateWithinBounds(double x, double[] constants)  throws FunctionException, NumericalMethodException {
     
     double T = x;
     double Tb = constants[0];
@@ -26,13 +26,13 @@ public class EnthalpyVapour extends Correlation {
     
     double Hv = this.R * ((C[0] * (T - Tb)) 
                        + (0.5 * C[1] * (Math.pow(T, 2) - Math.pow(Tb, 2))) 
-                       + ((1/3) * C[2] * (Math.pow(T, 3) - Math.pow(Tb, 3)))
-                       + (-1 * C[3] * (Math.pow(T, -1) - Math.pow(Tb, -1))));
+                       + ((1./3.) * C[2] * (Math.pow(T, 3) - Math.pow(Tb, 3)))
+                       + (-1. * C[3] * (Math.pow(T, -1) - Math.pow(Tb, -1))));
     
     return hL + lambda + Hv;
   }
   
-  public double evaluateDerivativeWithinBounds(double x, double[] constants) throws FunctionException, NumericalMethodException {
+  protected double evaluateDerivativeWithinBounds(double x, double[] constants) throws FunctionException, NumericalMethodException {
      double T = x;
      double Tb = constants[0];
      double dhLdT = constants[1];

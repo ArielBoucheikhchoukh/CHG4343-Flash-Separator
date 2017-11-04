@@ -23,11 +23,11 @@ public abstract class Correlation extends BoundedFunction implements Cloneable {
     this.form = form;
   }
   
-  public abstract double evaluateWithinBounds(double x, double[] constants) throws FunctionException, NumericalMethodException;
+  protected abstract double evaluateWithinBounds(double x, double[] constants) throws FunctionException, NumericalMethodException;
   
-  public abstract double evaluateDerivativeWithinBounds(double x, double[] constants) throws FunctionException, NumericalMethodException;
+  protected abstract double evaluateDerivativeWithinBounds(double x, double[] constants) throws FunctionException, NumericalMethodException;
   
-  public abstract int getConstantCount();
+  protected abstract int getConstantCount();
   
   protected void setParameters(double[] C, double minX, double maxX, int form) {
     this.C = C.clone();
@@ -52,12 +52,13 @@ public abstract class Correlation extends BoundedFunction implements Cloneable {
    this.form = form; 
   }
   
-  public Object clone() {
+  public Correlation clone() {
     try {
-      return super.clone();
+      return (Correlation)super.clone();
     }
     catch (CloneNotSupportedException e) {
-     return null; 
+      System.out.println("Could not clone correlation object.");
+      return null; 
     }
   }
   

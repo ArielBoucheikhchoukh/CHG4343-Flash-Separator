@@ -54,9 +54,15 @@ public class Menu {
     //Flash Calculation
     try {
       Stream[] flashStreams = flashSeparator.flashCalculation();
+      
+      System.out.println("Test: Vapour pressure of water at 100C is " + Menu.getSpecies(1).evaluateVapourPressure(373.15) + " Pa.");
+      System.out.println("Test: Molar enthalpy of liquid-phase water at 100C is " 
+                           + Menu.getSpecies(1).evaluateEnthalpyLiquid(373.15, 100) + " J/mol.");
+      System.out.println("Test: Molar enthalpy of vapour-phase water at 100C is " 
+                           + Menu.getSpecies(1).evaluateEnthalpyVapour(373.15, 100) + " J/mol.");
     }
     catch (Exception e) {
-      System.out.println(e.getMessage()); 
+      System.out.println("Error : " + e.getMessage()); 
     }
     
     //Write Results of Flash Calculation to Output File

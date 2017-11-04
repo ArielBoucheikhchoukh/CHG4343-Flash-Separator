@@ -83,22 +83,8 @@ public class Species {
     
     //Initialize Correlations and Store Parameters
     this.correlations = new Correlation[Species.correlationCount];
-    
-    this.correlations[VAPOUR_PRESSURE] = new VapourPressure();
-    this.correlations[ENTHALPY_LIQUID] = new EnthalpyLiquid();
-    this.correlations[ENTHALPY_VAPOUR] = new EnthalpyVapour();
-    
-    int position = this.propertyCount;
-    double[] C;
     for (int i = 0; i < Species.correlationCount; i++) {
-      int constantCount = this.correlations[i].getConstantCount();
-      
-      C = new double[constantCount];
-      System.arraycopy(source.correlations[i].getC(), position, C, 0, constantCount);
-      
-      this.correlations[i].setParameters(C, source.correlations[i].getMinX(), source.correlations[i].getMaxX(), source.correlations[i].getForm());
-      
-      position += constantCount + 3;
+      this.correlations[i] = source.correlations[i].clone();
     }
     
   }
@@ -119,11 +105,11 @@ public class Species {
   
   public double evaluateEnthalpyVapour(double T, double Tref) throws FunctionException, NumericalMethodException {
     double hL = this.correlations[Species.ENTHALPY_LIQUID].evaluate(this.Tb, new double[]{Tref, this.Tc});
-    return this.correlations[Species.ENTHALPY_VAPOUR].evaluate(T, new double[]{this.Tb, hL, this.latentHeat});
+    return this.correlations[Species.ENTHALPY_VAPOUR].evaluate(T, new double[]{this.Tb, hL, 1000*this.latentHeat});
   }
   
   public double evaluateEnthalpyVapour(double T, double Tref, double hL) throws FunctionException, NumericalMethodException {
-    return this.correlations[Species.ENTHALPY_VAPOUR].evaluate(T, new double[]{this.Tb, hL, this.latentHeat});
+    return this.correlations[Species.ENTHALPY_VAPOUR].evaluate(T, new double[]{this.Tb, hL, 1000*this.latentHeat});
   }
   
   public String getName() {

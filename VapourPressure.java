@@ -15,14 +15,14 @@ public class VapourPressure extends Correlation {
     super(C, minX, maxX, form);
   }
   
-  public double evaluateWithinBounds(double x, double[] constants) throws FunctionException, NumericalMethodException {
+  protected double evaluateWithinBounds(double x, double[] constants) throws FunctionException, NumericalMethodException {
     double T = x;
     double[] C = super.getC();
     
     return Math.pow(Math.E, C[0] + C[1] / T + C[2] * Math.log(T) + C[3] * Math.pow(T, C[4])); 
   }
   
-  public double evaluateDerivativeWithinBounds(double x, double[] constants) throws FunctionException, NumericalMethodException {
+  protected double evaluateDerivativeWithinBounds(double x, double[] constants) throws FunctionException, NumericalMethodException {
     double T = x;
     double[] C = super.getC();
     
