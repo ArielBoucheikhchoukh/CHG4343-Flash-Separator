@@ -14,7 +14,7 @@ public class NewtonRaphsonRootFinder extends RootFinder {
 ----------------------------------------------------------------------------------------------------------------------*/
   protected double rootFindingMethod(Function f, double[] constants, double xL, double incrementLength, double tolerance, int maxEvaluationCount) 
     throws NumericalMethodException, FunctionException {
-   
+    
     double oldX = xL;
     double newX = 0.;
     double error = 0.;

@@ -20,20 +20,22 @@ public class AdiabaticFeedTemp extends FlashSeparator {
     flashStream.setP(super.getP());
     
     super.flash(flashStream);
-    System.out.println("Test - AdiabaticFeedTemp Class Class: Stream was successfully flashed.");
+    System.out.println("Test - AdiabaticFeedTemp Class: Stream was successfully flashed.");
     
     double Tref = super.selectReferenceTemperature();
+    //Tref = 100.;
     EnthalpyBalance enthalpyBalance = new EnthalpyBalance(Tref, new Stream[]{new Stream(feedStream)}, null, 
-                                                          new Stream[]{new Stream(flashStream)}, super.getBehaviour());
-    
+                                                          new Stream[]{new Stream(flashStream)}, super.getBehaviour(), true);
+    //System.out.println("Test - AdiabaticFeedTemp Class: test Q = " + enthalpyBalance.evaluate(373., null));
     try {
-      double T_guess = 0.5 * (enthalpyBalance.getMinX() + enthalpyBalance.getMaxX()); 
+      double T_guess = enthalpyBalance.getMinX(); 
       double T_feed = Menu.findRoot(enthalpyBalance, null, T_guess, super.ENTHALPY_BALANCE_INCREMENT_LENGTH,
                                     super.ENTHALPY_BALANCE_TOLERANCE, super.ENTHALPY_BALANCE_MAX_EVALUATION_COUNT);
       super.setFeedStreamTemperature(T_feed);
       System.out.println("Test - AdiabaticFeedTemp Class: Feed temperature was successfully calculated.");
     }
-    catch (OutOfFunctionBoundsException | NoRootWithinFunctionBoundsException e) {
+    //catch (OutOfFunctionBoundsException | NoRootWithinFunctionBoundsException e) {
+    catch (Exception e) {
       System.out.println(e.getMessage());
       System.out.println("Test - AdiabaticFeedTemp Class: Feed temperature could not be calculated due to correlation limitations.");
     }

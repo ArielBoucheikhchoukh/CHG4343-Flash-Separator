@@ -11,7 +11,8 @@ public class EnthalpyBalance extends BoundedFunction {
 /**********************************************************************************************************************
   1) Constructor
 ---------------------------------------------------------------------------------------------------------------------*/
-  public EnthalpyBalance(double Tref, Stream[] unknownTempStreams, Stream[] inletStreams, Stream[] outletStreams, Behaviour behaviour) {
+  public EnthalpyBalance(double Tref, Stream[] unknownTempStreams, Stream[] inletStreams, Stream[] outletStreams, Behaviour behaviour, 
+                         boolean isInlet) {
     
     super(0., 1.);
     this.Tref = Tref;
@@ -46,6 +47,9 @@ public class EnthalpyBalance extends BoundedFunction {
     
     super.setMinX(boundaryValues[0]);
     super.setMaxX(boundaryValues[1]);
+    
+    //super.setMinX(280.);
+    //super.setMaxX(300.);
   }
 /*********************************************************************************************************************/
   
@@ -111,6 +115,7 @@ public class EnthalpyBalance extends BoundedFunction {
     }
     //System.out.println("Test - EnthalpyBalance Class: Test 4");
     
+    //System.out.println("Test - EnthalpyBalance Class: Q = " + Q);
     return Q;
   }
 /*********************************************************************************************************************/

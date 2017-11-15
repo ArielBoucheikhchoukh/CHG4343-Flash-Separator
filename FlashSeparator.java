@@ -3,7 +3,7 @@ public abstract class FlashSeparator {
   protected static final double ENTHALPY_BALANCE_MIN_X = 0.;
   protected static final double ENTHALPY_BALANCE_MAX_X = 100000.;
   protected static final double ENTHALPY_BALANCE_INCREMENT_LENGTH = 10.;
-  protected static final double ENTHALPY_BALANCE_TOLERANCE = 0.01;
+  protected static final double ENTHALPY_BALANCE_TOLERANCE = 0.1;
   protected static final int ENTHALPY_BALANCE_MAX_EVALUATION_COUNT = 100000;
   
   private double T;
@@ -86,17 +86,17 @@ public abstract class FlashSeparator {
     double F_gas = 0.;
     double[][] n = new double[2][componentCountTotal];
     Stream[] outletStreams = new Stream[2];
-    System.out.println("Test - FlashSeparator Class - splitPhases() Method: Test 1");
+    //System.out.println("Test - FlashSeparator Class - splitPhases() Method: Test 1");
     
     for (int i = 0; i < componentCountTotal; i++) {
       if (stream.isComponentCondensable(i)) {
         if (stream.getXi(i) > 0) {
           componentCountLiquid++;
-          F_liquid += stream.getCondensableFraction() * stream.getXi(i) * stream.getF();
+          F_liquid += stream.getCondensableFraction() * (1 - stream.getVapourFraction()) * stream.getXi(i) * stream.getF();
         }
         if (stream.getYi(i) > 0) {
           componentCountGas++;
-          F_gas += stream.getCondensableFraction() * stream.getYi(i) * stream.getF();
+          F_gas += stream.getCondensableFraction() * stream.getVapourFraction() * stream.getYi(i) * stream.getF();
         }
       }
       else {
@@ -104,7 +104,10 @@ public abstract class FlashSeparator {
         componentCountGas++;
       }
     }
-    System.out.println("Test - FlashSeparator Class - splitPhases() Method: Test 2");
+    //System.out.println("Test - FlashSeparator Class - splitPhases() Method: Test 2");
+    
+    //System.out.println("Test - FlashSeparator Class - splitPhases() Method: moles of liquid: " + F_liquid);
+    //System.out.println("Test - FlashSeparator Class - splitPhases() Method: moles of gas: " + F_gas);
     
     int liquidIndex = 0;
     int gasIndex = 0;
@@ -116,13 +119,15 @@ public abstract class FlashSeparator {
     for (int i = 0; i < componentCountTotal; i++) {
       if (stream.isComponentCondensable(i)) {
         if (stream.getXi(i) > 0) {
-          x[liquidIndex] = stream.getXi(i) * stream.getCondensableFraction() * stream.getF() / F_liquid;
+          x[liquidIndex] = stream.getXi(i) * (1 - stream.getVapourFraction()) * stream.getCondensableFraction() * stream.getF() / F_liquid;
           speciesIndices[0][liquidIndex] = stream.getSpeciesIndex(i);
+          //System.out.println("Test - FlashSeparator Class - splitPhases() Method: " + stream.getSpeciesIndex(i) + ": x = " + x[liquidIndex]);
           liquidIndex++;
         }
         if (stream.getYi(i) > 0) {
-          y[gasIndex] = stream.getYi(i) * stream.getCondensableFraction() * stream.getF() / F_gas;
+          y[gasIndex] = stream.getYi(i) * stream.getVapourFraction() * stream.getCondensableFraction() * stream.getF() / F_gas;
           speciesIndices[1][gasIndex] = stream.getSpeciesIndex(i);
+          //System.out.println("Test - FlashSeparator Class - splitPhases() Method: " + stream.getSpeciesIndex(i) + ": y = " + y[gasIndex]);
           gasIndex++;
         }
       }
@@ -132,11 +137,11 @@ public abstract class FlashSeparator {
         gasIndex++;
       }
     }
-    System.out.println("Test - FlashSeparator Class - splitPhases() Method: Test 3");
+    //System.out.println("Test - FlashSeparator Class - splitPhases() Method: Test 3");
     
     outletStreams[0] = new Stream("Liquid Phase", stream.getT(), stream.getP(), F_liquid, 0, x, null, x, speciesIndices[0]);
     outletStreams[1] = new Stream("Vapour/Gas Phase", stream.getT(), stream.getP(), F_gas, 1, null, y, y, speciesIndices[1]);
-    System.out.println("Test - FlashSeparator Class - splitPhases() Method: Test 4");
+    //System.out.println("Test - FlashSeparator Class - splitPhases() Method: Test 4");
     
     return outletStreams;
     

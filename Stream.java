@@ -34,6 +34,7 @@ public class Stream {
   
 /**********************************************************************************************************************
   1.2) Constructor B: Used by FlashSeparator children to construct their feed stream objects.
+                      The feed is set to a liquid-phase stream by default.
 ---------------------------------------------------------------------------------------------------------------------*/
   public Stream(String name, double T, double F, double[] z, int[] speciesIndices) {
     this.name = name;
@@ -54,7 +55,7 @@ public class Stream {
     this.updateCondensableState();
     
     for (int i = 0; i < componentCount; i++) {
-      this.x[i] = 1.;
+      this.x[i] = this.z[i];
     }
   }
 /*********************************************************************************************************************/
@@ -171,34 +172,38 @@ public class Stream {
 ---------------------------------------------------------------------------------------------------------------------*/
   public double evaluateStreamEnthalpy(double Tref, boolean derivative) throws FunctionException {
     
+    //System.out.println("Test - Stream Class - evaluateStreamEnthalpy: derivative = " + derivative);
+    
     double H = 0.; 
     for (int i = 0; i < this.speciesIndices.length; i++) {
       
       double hL_i = 0.; 
       double Hv_i = 0.; 
       Species species_i = Menu.getSpecies(this.speciesIndices[i]);
-      
+      //System.out.println("Test - Stream Class - evaluateStreamEnthalpy: Species = " + species_i.getName());
       if (this.isCondensable[i]) {
         
         if (this.x[i] > 0) {
           hL_i = species_i.evaluateEnthalpyLiquid(this.T, Tref, derivative);
-          
-          if (this.y[i] > 0) {
-            Hv_i = species_i.evaluateEnthalpyVapour(this.T, Tref, hL_i, derivative);
-          }
+          //System.out.println("Test - Stream Class - evaluateStreamEnthalpy: hL = " + hL_i);
         }
-        else if (this.y[i] > 0) {
+        if (this.y[i] > 0) {
           Hv_i = species_i.evaluateEnthalpyVapour(this.T, Tref, derivative);
+          //System.out.println("Test - Stream Class - evaluateStreamEnthalpy: Hv = " + Hv_i);
         }
         
         H += this.condensableFraction * this.F * (this.x[i] * (1 - this.vapourFraction) * hL_i + this.y[i] * this.vapourFraction * Hv_i);
       }
       else {
         Hv_i = species_i.evaluateEnthalpyVapour(this.T, Tref, derivative);
+        //System.out.println("Test - Stream Class - evaluateStreamEnthalpy: Hv = " + Hv_i);
         H += this.z[i] * this.F * Hv_i;
       }
     }
     
+    //System.out.println("Test - Stream Class - evaluateStreamEnthalpy: cdFraction = " + this.condensableFraction);
+    //System.out.println("Test - Stream Class - evaluateStreamEnthalpy: F = " + this.F);
+    //System.out.println("Test - Stream Class - evaluateStreamEnthalpy: H = " + H);
     return H;
     
   }

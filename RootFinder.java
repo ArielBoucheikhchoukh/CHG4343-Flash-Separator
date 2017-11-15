@@ -118,7 +118,7 @@ public abstract class RootFinder {
       
     boolean uniqueRoot = false; // Flag for a single root within the given increment
     while (!uniqueRoot) { // Continue this loop until only a single root exists
-      System.out.println("xL = " + xL + ", Increment Length = " + incrementLength);
+      System.out.println("xL = " + xL + ", Increment Length = " + incrementLength + ", tolerance = " + tolerance);
       int rootCount = 0;
       double x = xL;
       double sign = Math.signum(f.evaluate(x, constants));
@@ -130,6 +130,11 @@ public abstract class RootFinder {
         
         x += tolerance; // increase x by the error tolerance
         newSign = Math.signum(f.evaluate(x, constants)); // update the sign of f(x)
+        
+        /*if (tolerance == 0.1) {
+          System.out.println("for x = " + x + ", f = " + f.evaluate(x, constants));
+        }*/
+        
         this.evaluationCount++;
         
         if (newSign != sign) { // Check whether the signs of f(x_i) and f(x_i-1) differ 

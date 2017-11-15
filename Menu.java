@@ -56,20 +56,21 @@ public class Menu {
     try {
       flashStreams = flashSeparator.flashCalculation();
       
-      /*System.out.println("Test: Vapour pressure of water at 100C is " + Menu.getSpecies(1).evaluateVapourPressure(373.15, false) + " Pa.");
+      System.out.println("Test: Species is " + Menu.getSpecies(0).getName());
+      System.out.println("Test: Vapour pressure of water at 100C is " + Menu.getSpecies(0).evaluateVapourPressure(373.15, false) + " Pa.");
       System.out.println("Test: Molar enthalpy of liquid-phase water at 100C is " 
-                           + Menu.getSpecies(1).evaluateEnthalpyLiquid(373.15, 100, false) + " J/mol.");
+                           + Menu.getSpecies(0).evaluateEnthalpyLiquid(373.15, 100, false) + " J/mol.");
       System.out.println("Test: Molar enthalpy of vapour-phase water at 100C is " 
-                           + Menu.getSpecies(1).evaluateEnthalpyVapour(373.15, 100, false) + " J/mol."); */
+                           + Menu.getSpecies(0).evaluateEnthalpyVapour(373.15, 100, false) + " J/mol."); 
       
       
-      System.out.println(flashSeparator.toString());
-      
+      System.out.println("\n\n" + flashSeparator.toString());
       System.out.println("\nOutlet Streams: ");
       System.out.println(flashStreams[0].toString());
       System.out.println(flashStreams[1].toString());
     }
     catch (FlashCalculationException | NumericalMethodException | FunctionException e) {
+    //catch (Exception e) {
       System.out.println("Error : " + e.getMessage()); 
     }
     
