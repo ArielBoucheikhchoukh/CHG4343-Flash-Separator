@@ -1,8 +1,8 @@
 public class Species {
   
-  private static final int VAPOUR_PRESSURE = 0;
-  private static final int ENTHALPY_LIQUID = 1;
-  private static final int ENTHALPY_VAPOUR = 2;
+  public static final int VAPOUR_PRESSURE = 0;
+  public static final int ENTHALPY_LIQUID = 1;
+  public static final int ENTHALPY_VAPOUR = 2;
   
   public static final int propertyCount = 31;
   public static final int physicalPropertyCount = 8;
@@ -95,21 +95,42 @@ public class Species {
     return new double[]{this.molarMass, this.Tb, this.latentHeat, this.accentricFactor, this.Tc, this.Pc, this.Vc, this.Zc}; 
   }
   
-  public double evaluateVapourPressure(double T) throws FunctionException, NumericalMethodException {
-    return this.correlations[Species.VAPOUR_PRESSURE].evaluate(T, null);
+  public double evaluateVapourPressure(double T, boolean derivative) throws FunctionException {
+    if (derivative) {
+      return this.correlations[Species.VAPOUR_PRESSURE].evaluateDerivative(T, null);
+    }
+    else {
+      return this.correlations[Species.VAPOUR_PRESSURE].evaluate(T, null);
+    }
   }
   
-  public double evaluateEnthalpyLiquid(double T, double Tref) throws FunctionException, NumericalMethodException {
-    return this.correlations[Species.ENTHALPY_LIQUID].evaluate(T, new double[]{Tref, this.Tc});
+  public double evaluateEnthalpyLiquid(double T, double Tref, boolean derivative) throws FunctionException {
+    if (derivative) {
+      return this.correlations[Species.ENTHALPY_LIQUID].evaluateDerivative(T, new double[]{Tref, this.Tc});
+    }
+    else {
+      return this.correlations[Species.ENTHALPY_LIQUID].evaluate(T, new double[]{Tref, this.Tc});
+    }
   }
   
-  public double evaluateEnthalpyVapour(double T, double Tref) throws FunctionException, NumericalMethodException {
-    double hL = this.correlations[Species.ENTHALPY_LIQUID].evaluate(this.Tb, new double[]{Tref, this.Tc});
-    return this.correlations[Species.ENTHALPY_VAPOUR].evaluate(T, new double[]{this.Tb, hL, 1000*this.latentHeat});
+  public double evaluateEnthalpyVapour(double T, double Tref, boolean derivative) throws FunctionException {
+    if (derivative) {
+      double dhdL = this.correlations[Species.ENTHALPY_LIQUID].evaluateDerivative(this.Tb, new double[]{Tref, this.Tc});
+      return this.correlations[Species.ENTHALPY_VAPOUR].evaluateDerivative(T, new double[]{this.Tb, dhdL, 1000*this.latentHeat});
+    }
+    else {
+      double hL = this.correlations[Species.ENTHALPY_LIQUID].evaluate(this.Tb, new double[]{Tref, this.Tc});
+      return this.correlations[Species.ENTHALPY_VAPOUR].evaluate(T, new double[]{this.Tb, hL, 1000*this.latentHeat});
+    }
   }
   
-  public double evaluateEnthalpyVapour(double T, double Tref, double hL) throws FunctionException, NumericalMethodException {
-    return this.correlations[Species.ENTHALPY_VAPOUR].evaluate(T, new double[]{this.Tb, hL, 1000*this.latentHeat});
+  public double evaluateEnthalpyVapour(double T, double Tref, double hL, boolean derivative) throws FunctionException {
+    if (derivative) {
+      return this.correlations[Species.ENTHALPY_VAPOUR].evaluateDerivative(T, new double[]{this.Tb, hL, 1000*this.latentHeat});
+    }
+    else {
+      return this.correlations[Species.ENTHALPY_VAPOUR].evaluate(T, new double[]{this.Tb, hL, 1000*this.latentHeat});
+    }
   }
   
   public String getName() {

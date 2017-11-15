@@ -8,7 +8,7 @@ import java.util.Scanner;
 
 public class Menu {
   
-  private static final String inputFilePath = "IO/Input_22.csv"; //IO/Input_22.csv
+  private static final String inputFilePath = "IO/Data.csv"; //IO/Data.csv
   private static Species[] speciesList;
   
   
@@ -47,28 +47,36 @@ public class Menu {
       fileReader.close();
     }
     catch (NoSuchElementException e) {
-      System.out.println("Error reading input file.");
+      System.out.println("NoSuchElementException: Error reading input file.");
       return;
     }
     
     //Flash Calculation
+    Stream[] flashStreams = new Stream[2];
     try {
-      Stream[] flashStreams = flashSeparator.flashCalculation();
+      flashStreams = flashSeparator.flashCalculation();
       
-      System.out.println("Test: Vapour pressure of water at 100C is " + Menu.getSpecies(1).evaluateVapourPressure(373.15) + " Pa.");
+      /*System.out.println("Test: Vapour pressure of water at 100C is " + Menu.getSpecies(1).evaluateVapourPressure(373.15, false) + " Pa.");
       System.out.println("Test: Molar enthalpy of liquid-phase water at 100C is " 
-                           + Menu.getSpecies(1).evaluateEnthalpyLiquid(373.15, 100) + " J/mol.");
+                           + Menu.getSpecies(1).evaluateEnthalpyLiquid(373.15, 100, false) + " J/mol.");
       System.out.println("Test: Molar enthalpy of vapour-phase water at 100C is " 
-                           + Menu.getSpecies(1).evaluateEnthalpyVapour(373.15, 100) + " J/mol.");
+                           + Menu.getSpecies(1).evaluateEnthalpyVapour(373.15, 100, false) + " J/mol."); */
+      
+      
+      System.out.println(flashSeparator.toString());
+      
+      System.out.println("\nOutlet Streams: ");
+      System.out.println(flashStreams[0].toString());
+      System.out.println(flashStreams[1].toString());
     }
-    catch (Exception e) {
+    catch (FlashCalculationException | NumericalMethodException | FunctionException e) {
       System.out.println("Error : " + e.getMessage()); 
     }
     
     //Write Results of Flash Calculation to Output File
     //...
-    
-    System.out.println("Program successfully run.");
+
+    System.out.println("Program terminated.");
   }
 /*********************************************************************************************************************/
   
@@ -110,9 +118,12 @@ public class Menu {
     int flashCase = fileReader.nextInt(); // Move to A3
     int behaviourCase = fileReader.nextInt(); // Move to B3 
     
-    double T = fileReader.nextDouble(); // Move to Cell C3
+    double T = fileReader.nextDouble() + 273.15; // Move to Cell C3
     double P = fileReader.nextDouble(); // Move to Cell D3
     double F = fileReader.nextDouble(); // Move to Cell E3
+    
+    System.out.println("Flash Case: " + flashCase);
+    System.out.println("Behaviour Case: " + behaviourCase);
     
     for (int i = 0; i < 3; i++) {
       fileReader.next(); // Skip to Cell H3
@@ -126,7 +137,7 @@ public class Menu {
     
     /* Store Species Data
     -----------------------------------------------------------------------------------------------------------------*/
-    for (int i = 0; i < 7; i++) {
+    for (int i = 0; i < 6; i++) {
       fileReader.nextLine(); //Skip to Row 10
     }
     
@@ -241,17 +252,36 @@ public class Menu {
 ----------------------------------------------------------------------------------------------------------------------*/
   public static int[] convertSpeciesNamesToIndices(String[] speciesNames) {
     
+    System.out.println("Test: In Menu, print the names of the components in the feed stream.");
+    for (int i = 0; i < speciesNames.length; i++) {
+      System.out.println("Component " + i + ": " + speciesNames[i]);
+    }
+    
     int[] speciesIndices = new int[speciesNames.length];
     
     for (int i = 0; i < speciesNames.length; i++) {
       for (int j = 0; j < Menu.speciesList.length; j++) {
-        if (speciesNames[i] == Menu.getSpeciesName(j)) {
+        if (speciesNames[i].equals(Menu.getSpeciesName(j))) {
           speciesIndices[i] = j;
         }
       }
     }
     
     return speciesIndices;
+  }
+/*********************************************************************************************************************/
+  
+  
+/**********************************************************************************************************************
+  7) findRoot() : 
+----------------------------------------------------------------------------------------------------------------------*/
+  public static double findRoot(Function f, double[] constants, double xL, double incrementLength, double tolerance, int maxEvaluationCount)
+    throws NumericalMethodException, FunctionException {
+    
+    RootFinder rootFinder = new NewtonRaphsonRootFinder();
+    //RootFinder rootFinder = new BisectionRootFinder();
+    
+    return rootFinder.findRoot(f, constants, xL, incrementLength, tolerance, maxEvaluationCount);
   }
 /*********************************************************************************************************************/
   

@@ -14,8 +14,8 @@
 public class ValidateRootFinder {
   public static void main(String[] args) {
    
-    RootFinder rootFinder = new BisectionRootFinder();
-    //RootFinder rootFinder = new NewtonRaphsonRootFinder();
+    //RootFinder rootFinder = new BisectionRootFinder();
+    RootFinder rootFinder = new NewtonRaphsonRootFinder();
     
     double answer = 0.;
     

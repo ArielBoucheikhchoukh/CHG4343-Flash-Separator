@@ -1,5 +1,13 @@
 public class BisectionRootFinder extends RootFinder {
   
+/**********************************************************************************************************************
+  1) Constructor
+----------------------------------------------------------------------------------------------------------------------*/
+  public BisectionRootFinder() {
+    super();
+  }
+/*********************************************************************************************************************/
+  
   protected double rootFindingMethod(Function f, double[] constants, double xL, double incrementLength, double tolerance, int maxEvaluationCount) 
     throws NumericalMethodException, FunctionException {
    
@@ -14,21 +22,20 @@ public class BisectionRootFinder extends RootFinder {
       
       System.out.println("Previous Lower Bound : " + lowerBound);
       
-      double[] bounds = super.incrementalSearch(f, constants, lowerBound, incrementLength, tolerance, evaluationCount, maxEvaluationCount);
+      double[] bounds = super.incrementalSearch(f, constants, lowerBound, incrementLength, tolerance, maxEvaluationCount);
       
       xL = bounds[0];
       double xU = bounds[1];
       lowerBound = xU;
-      evaluationCount = (int) bounds[2];
       
       double f_xL = f.evaluate(xL, constants);
       double f_xU = f.evaluate(xU, constants);
-      evaluationCount += 2;
+      super.setEvaluationCount(super.getEvaluationCount() + 2);
       
       System.out.println("xL = " + xL + " and xU = " + xU);
       
       do {
-        super.checkEvaluationCount(evaluationCount, maxEvaluationCount);
+        super.checkEvaluationCount(maxEvaluationCount);
         
         xR = 0.5*(xL + xU);
         f_xR = f.evaluate(xR, constants);
@@ -46,13 +53,13 @@ public class BisectionRootFinder extends RootFinder {
         }
         
         error = (xU - xL)/2;
-        evaluationCount += 3;
+        super.setEvaluationCount(super.getEvaluationCount() + 3);
         
       } while (error > tolerance);
       
       xR = 0.5*(xL + xU);
       foundRoot = !super.checkForAsymptote(f, constants, xR, tolerance);
-      evaluationCount += 2;
+      super.setEvaluationCount(super.getEvaluationCount() + 2);
       
     } while (!foundRoot);
     

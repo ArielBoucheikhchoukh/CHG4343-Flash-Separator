@@ -23,9 +23,9 @@ public abstract class Correlation extends BoundedFunction implements Cloneable {
     this.form = form;
   }
   
-  protected abstract double evaluateWithinBounds(double x, double[] constants) throws FunctionException, NumericalMethodException;
+  protected abstract double evaluateWithinBounds(double x, double[] constants);
   
-  protected abstract double evaluateDerivativeWithinBounds(double x, double[] constants) throws FunctionException, NumericalMethodException;
+  protected abstract double evaluateDerivativeWithinBounds(double x, double[] constants);
   
   protected abstract int getConstantCount();
   

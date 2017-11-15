@@ -1,6 +1,6 @@
 /* Evaluates the vapour pressure of a species.  
  * T = [K]
- * Psat = [Pa]
+ * Psat = [bar]
  */
 
 public class VapourPressure extends Correlation {
@@ -15,18 +15,18 @@ public class VapourPressure extends Correlation {
     super(C, minX, maxX, form);
   }
   
-  protected double evaluateWithinBounds(double x, double[] constants) throws FunctionException, NumericalMethodException {
+  protected double evaluateWithinBounds(double x, double[] constants){
     double T = x;
     double[] C = super.getC();
     
-    return Math.pow(Math.E, C[0] + C[1] / T + C[2] * Math.log(T) + C[3] * Math.pow(T, C[4])); 
+    return (1./100000.) * Math.pow(Math.E, C[0] + C[1] / T + C[2] * Math.log(T) + C[3] * Math.pow(T, C[4])); 
   }
   
-  protected double evaluateDerivativeWithinBounds(double x, double[] constants) throws FunctionException, NumericalMethodException {
+  protected double evaluateDerivativeWithinBounds(double x, double[] constants) {
     double T = x;
     double[] C = super.getC();
     
-    return (-C[1]/Math.pow(T, 2) + C[2]/T + C[3]*C[4]*Math.pow(T, C[4]-1)) 
+    return (1./100000.) * (-C[1]/Math.pow(T, 2) + C[2]/T + C[3]*C[4]*Math.pow(T, C[4]-1)) 
       * Math.pow(Math.E, C[0] + C[1] / T + C[2] * Math.log(T) + C[3] * Math.pow(T, C[4])); 
   }
   

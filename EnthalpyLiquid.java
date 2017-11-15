@@ -15,7 +15,7 @@ public class EnthalpyLiquid extends Correlation {
     super(C, minX, maxX, form);
   }
   
-  protected double evaluateWithinBounds(double x, double[] constants) throws FunctionException, NumericalMethodException {
+  protected double evaluateWithinBounds(double x, double[] constants) {
     double T = x;
     double Tref = constants[0];
     double Tc = constants[1];
@@ -44,7 +44,7 @@ public class EnthalpyLiquid extends Correlation {
     }
   }
   
-  protected double evaluateDerivativeWithinBounds(double x, double[] constants) throws FunctionException, NumericalMethodException {
+  protected double evaluateDerivativeWithinBounds(double x, double[] constants){
     double T = x;
     double Tref = constants[0];
     double Tc = constants[1];

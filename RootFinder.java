@@ -1,9 +1,33 @@
 public abstract class RootFinder {
  
   private static final double DEFAULT_INCREMENT_FRACTION = 0.1;
+  private static final double DEFAULT_INCREMENT_FACTOR = 100.;
+  private static final int DEFAULT_MAX_EVALUATION_COUNT = 100000;
+  private double evaluationCount;
+  
   
 /**********************************************************************************************************************
-  1) findRoot() : Checks the integrity of the parameters and calls the root finding method. 
+  1) Constructor
+----------------------------------------------------------------------------------------------------------------------*/
+  public RootFinder() {
+    this.evaluationCount = 0.;
+  }
+/*********************************************************************************************************************/
+  
+  
+  /**********************************************************************************************************************
+  2.1) findRoot() : Checks the integrity of the parameters and calls the root finding method. 
+                  startPoint can either be taken to be the lower bound or starting point of an incremental search, or 
+                  as an initial guess.
+----------------------------------------------------------------------------------------------------------------------*/
+  protected double findRoot(Function f, double[] constants, double tolerance) 
+    throws NumericalMethodException, FunctionException {
+    
+    return this.findRoot(f, constants, 0., tolerance * this.DEFAULT_INCREMENT_FACTOR, tolerance, this.DEFAULT_MAX_EVALUATION_COUNT);
+  }
+ 
+/**********************************************************************************************************************
+  2.2) findRoot() : Checks the integrity of the parameters and calls the root finding method. 
                   startPoint can either be taken to be the lower bound or starting point of an incremental search, or 
                   as an initial guess.
 ----------------------------------------------------------------------------------------------------------------------*/
@@ -25,27 +49,37 @@ public abstract class RootFinder {
         startPoint = lowerBound;
       }
       
-      if (incrementLength > Math.abs(upperBound - lowerBound) || incrementLength < 0) { // Check whether the increment length is smaller than the 
-                                                                                        // domain of function f
+      if (Math.abs(incrementLength) > Math.abs(upperBound - lowerBound) || incrementLength < 0) { // Check whether the increment length is smaller 
+                                                                                                  // than the domain of function f
        incrementLength = (upperBound - lowerBound) * this.DEFAULT_INCREMENT_FRACTION;
       }
     } 
     
     incrementLength = Math.abs(incrementLength);
+    if (incrementLength < tolerance) {
+      incrementLength = tolerance * this.DEFAULT_INCREMENT_FACTOR;
+    }
+    
     tolerance = Math.abs(tolerance);
     maxEvaluationCount = Math.abs(maxEvaluationCount);
     
     
     /* Find the Root
     -----------------------------------------------------------------------------------------------------------------*/
-    if (f.evaluate(startPoint, constants) == 0.) { // Check if startPoint is a root
-      return startPoint; 
-    }
-    else if (isBounded) { // Check if the upper bound is a root in the case of a bounded function
-      if (f.evaluate(upperBound, constants) == 0.) { 
-        return upperBound;
+    try {
+      if (f.evaluate(startPoint, constants) == 0.) { // Check if startPoint is a root
+        return startPoint; 
+      }
+      else if (isBounded) { // Check if the upper bound is a root in the case of a bounded function
+        if (f.evaluate(upperBound, constants) == 0.) { 
+          return upperBound;
+        }
       }
     }
+    catch (Exception e) {
+      
+    }
+    
     System.out.println("start point = " + startPoint);
     //Check within the function bounds
     return this.rootFindingMethod(f, constants, startPoint, incrementLength, tolerance, maxEvaluationCount); //Go to method (2)
@@ -54,7 +88,7 @@ public abstract class RootFinder {
   
   
 /**********************************************************************************************************************
-  2) rootFindingMethod() : Finds a single root of function f; to be overriden by children of RootFinder.
+  3) rootFindingMethod() : Finds a single root of function f; to be overriden by children of RootFinder.
 ----------------------------------------------------------------------------------------------------------------------*/
   protected abstract double rootFindingMethod(Function f, double[] constants, double xL, double incrementLength, 
                                               double tolerance, int maxEvaluationCount) 
@@ -63,17 +97,17 @@ public abstract class RootFinder {
   
   
 /**********************************************************************************************************************
-  3) incrementalSearch() : Returns an increment of function f within which a single root exists, as well as the current 
+  4) incrementalSearch() : Returns an increment of function f within which a single root exists, as well as the current 
                            evaluation count; starts at xL and moves up; to be used only by root finding methods that 
                            require bracketing.
                            returnParameters[0] = xL
                            returnParameters[1] = xU
                            returnParameters[2] = evaluationCount
 ----------------------------------------------------------------------------------------------------------------------*/
-  protected double[] incrementalSearch(Function f, double[] constants, double xL, double incrementLength, double tolerance, int evaluationCount, int maxEvaluationCount) 
+  protected double[] incrementalSearch(Function f, double[] constants, double xL, double incrementLength, double tolerance, int maxEvaluationCount) 
     throws NumericalMethodException, FunctionException {
     
-    double[] returnParameters = new double[3];
+    double[] returnParameters = new double[2];
     
     if (f instanceof BoundedFunction) { // Check whether the bounds of the function have been exhausted
       BoundedFunction boundedF = (BoundedFunction) f;
@@ -89,14 +123,14 @@ public abstract class RootFinder {
       double x = xL;
       double sign = Math.signum(f.evaluate(x, constants));
       double newSign = 0;
-      evaluationCount++;
+      this.evaluationCount++;
       
       while (x < xL + incrementLength) { //Search the increment within the error tolerance for all roots
-        this.checkEvaluationCount(evaluationCount, maxEvaluationCount);
+        this.checkEvaluationCount(maxEvaluationCount);
         
-        x += tolerance * incrementLength; // increase x by the error tolerance
+        x += tolerance; // increase x by the error tolerance
         newSign = Math.signum(f.evaluate(x, constants)); // update the sign of f(x)
-        evaluationCount++;
+        this.evaluationCount++;
         
         if (newSign != sign) { // Check whether the signs of f(x_i) and f(x_i-1) differ 
           rootCount++; // If so, increase the root count
@@ -120,18 +154,17 @@ public abstract class RootFinder {
       }
     }
     
-    returnParameters[2] = evaluationCount;
     return returnParameters;
   }
 /*********************************************************************************************************************/
   
   
 /**********************************************************************************************************************
-  4) checkEvaluationCount() : Safeguard that checks whether the root finding method has exceeded the provided maximum 
+  5) checkEvaluationCount() : Safeguard that checks whether the root finding method has exceeded the provided maximum 
                               number of function evaluations; to be called periodically from rootFindingMethod().
 ----------------------------------------------------------------------------------------------------------------------*/
-  protected void checkEvaluationCount(int evaluationCount, int maxEvaluationCount) throws TooManyFunctionEvaluationsException {
-    if (evaluationCount > maxEvaluationCount) {
+  protected void checkEvaluationCount(int maxEvaluationCount) throws TooManyFunctionEvaluationsException {
+    if (this.evaluationCount > maxEvaluationCount) {
      throw new TooManyFunctionEvaluationsException(); 
     }
   }
@@ -139,12 +172,13 @@ public abstract class RootFinder {
   
   
 /**********************************************************************************************************************
-  5) checkForAsymptote() : Checks whether the critical point x is a root (false) or an asymptote (true). 
+  6) checkForAsymptote() : Checks whether the critical point x is a root (false) or an asymptote (true). 
 ----------------------------------------------------------------------------------------------------------------------*/
   protected boolean checkForAsymptote(Function f, double[] constants, double x, double tolerance) 
     throws FunctionException, NumericalMethodException {
     
     if (Math.abs(f.evaluate(x + 2 * tolerance, constants)) >  Math.abs(f.evaluate(x, constants))) {
+      this.evaluationCount += 2;
       return false;
     }
     else {
@@ -153,5 +187,14 @@ public abstract class RootFinder {
     }
   }
 /*********************************************************************************************************************/
+  
+  
+  public double getEvaluationCount() {
+    return this.evaluationCount;
+  }
+  
+  public void setEvaluationCount(double evaluationCount) {
+    this.evaluationCount = evaluationCount;
+  }
   
 }

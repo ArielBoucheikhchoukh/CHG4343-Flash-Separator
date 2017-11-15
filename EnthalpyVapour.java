@@ -16,7 +16,7 @@ public class EnthalpyVapour extends Correlation {
     super(C, minX, maxX, form);
   }
   
-  protected double evaluateWithinBounds(double x, double[] constants)  throws FunctionException, NumericalMethodException {
+  protected double evaluateWithinBounds(double x, double[] constants) {
     
     double T = x;
     double Tb = constants[0];
@@ -32,7 +32,7 @@ public class EnthalpyVapour extends Correlation {
     return hL + lambda + Hv;
   }
   
-  protected double evaluateDerivativeWithinBounds(double x, double[] constants) throws FunctionException, NumericalMethodException {
+  protected double evaluateDerivativeWithinBounds(double x, double[] constants) {
      double T = x;
      double Tb = constants[0];
      double dhLdT = constants[1];
