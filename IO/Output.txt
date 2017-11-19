@@ -1,0 +1,111 @@
+
+
+
+Flash Separator: Adiabatic Feed Temperature - Ideal Behaviour 
+   Status: Feed stream was flashed into liquid and vapour phase streams. 
+   T = 373.15 K 
+   P = 2.00 bar 
+   Q = 0.00 J/h 
+
+Feed Stream: 
+   T = 485.66 K 
+   P = 10.00 bar 
+   F = 1.00 mol/h 
+   Fraction of condensable moles = 60.00 % 
+   Fraction of condensable moles in the vapour phase = 0.00 % 
+   Components: 
+      1. Water: 
+         x = 40.00% 
+         y = 0.00% 
+         z = 40.00% 
+      2. Cyclohexane: 
+         x = 20.00% 
+         y = 0.00% 
+         z = 20.00% 
+      3. Pentane: 
+         x = 30.00% 
+         y = 0.00% 
+         z = 30.00% 
+      4. Ethane: 
+         x = 10.00% 
+         y = 0.00% 
+         z = 10.00% 
+
+
+Flash Stream: 
+   T = 373.15 K 
+   P = 2.00 bar 
+   F = 1.00 mol/h 
+   Fraction of condensable moles = 90.00 % 
+   Fraction of condensable moles in the vapour phase = 51.63 % 
+   Components: 
+      1. Water: 
+         x = 59.65% 
+         y = 30.20% 
+         z = 40.00% 
+      2. Cyclohexane: 
+         x = 23.78% 
+         y = 20.76% 
+         z = 20.00% 
+      3. Pentane: 
+         x = 16.57% 
+         y = 49.04% 
+         z = 30.00% 
+      4. Ethane: 
+         x = 0.00% 
+         y = 0.00% 
+         z = 10.00% 
+
+
+Outlet Streams: 
+Liquid Phase: 
+   T = 373.15 K 
+   P = 2.00 bar 
+   F = 0.44 mol/h 
+   Fraction of condensable moles = 100.00 % 
+   Fraction of condensable moles in the vapour phase = 0.00 % 
+   Components: 
+      1. Water: 
+         x = 59.65% 
+         y = 0.00% 
+         z = 59.65% 
+      2. Cyclohexane: 
+         x = 23.78% 
+         y = 0.00% 
+         z = 23.78% 
+      3. Pentane: 
+         x = 16.57% 
+         y = 0.00% 
+         z = 16.57% 
+
+Vapour/Gas Phase: 
+   T = 373.15 K 
+   P = 2.00 bar 
+   F = 0.56 mol/h 
+   Fraction of condensable moles = 82.29 % 
+   Fraction of condensable moles in the vapour phase = 100.00 % 
+   Components: 
+      1. Water: 
+         x = 0.00% 
+         y = 24.85% 
+         z = 24.85% 
+      2. Cyclohexane: 
+         x = 0.00% 
+         y = 17.08% 
+         z = 17.08% 
+      3. Pentane: 
+         x = 0.00% 
+         y = 40.35% 
+         z = 40.35% 
+      4. Ethane: 
+         x = 0.00% 
+         y = 17.71% 
+         z = 17.71% 
+
+
+
+Warning: Enthalpy Balance was evaluated outside of the function bounds.
+Warning: Liquid-Phase Enthalpy of Pentane was evaluated outside of the function bounds.
+Warning: Liquid-Phase Enthalpy of Cyclohexane was evaluated outside of the function bounds.
+
+
