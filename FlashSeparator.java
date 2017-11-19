@@ -1,222 +1,362 @@
+import java.text.DecimalFormat;
+
 public abstract class FlashSeparator {
- 
-  protected static final double ENTHALPY_BALANCE_MIN_X = 0.;
-  protected static final double ENTHALPY_BALANCE_MAX_X = 100000.;
-  protected static final double ENTHALPY_BALANCE_INCREMENT_LENGTH = 10.;
-  protected static final double ENTHALPY_BALANCE_TOLERANCE = 0.1;
-  protected static final int ENTHALPY_BALANCE_MAX_EVALUATION_COUNT = 100000;
-  
-  private double T;
-  private double P;
-  private double Q;
-  private Behaviour behaviour;
-  private Stream feedStream;
-  
-  
+
+	public static final double ENTHALPY_BALANCE_MIN_X = 0.;
+	public static final double ENTHALPY_BALANCE_MAX_X = 100000.;
+	public static final double ENTHALPY_BALANCE_INCREMENT_LENGTH = 10.;
+	public static final double ENTHALPY_BALANCE_TOLERANCE = 0.01;
+	public static final int ENTHALPY_BALANCE_MAX_EVALUATION_COUNT = 500000;
+	public static final double FLASH_TEMPERATURE_INCREMENT = 0.01;
+	public static final double FLASH_TEMPERATURE_TOLERANCE = 1.;
+
+	private String type;
+	private String status;
+	private double T;
+	private double P;
+	private double Q;
+	private Stream feedStream;
+	private Stream flashStream;
+	private Stream[] outletStreams;
+	private Behaviour behaviour;
+
+	
 /**********************************************************************************************************************
-  1) Constructor A : . 
----------------------------------------------------------------------------------------------------------------------*/
-  public FlashSeparator(double P, Stream feedStream) {
-    this.T = 273.15;
-    this.P = P;
-    this.Q = 0.;
-    this.feedStream = new Stream(feedStream);
-  }
+* 1) Constructor A : .
+* ---------------------------------------------------------------------------------------------------------------------
+*/
+	public FlashSeparator(String type, double P, Stream feedStream) {
+		this.type = type;
+		this.status = "";
+		
+		this.T = 273.15;
+		this.P = P;
+		this.Q = 0.;
+
+		this.feedStream = new Stream(feedStream);
+
+		this.flashStream = new Stream(feedStream);
+		this.flashStream.setName("Flash Stream");
+		this.flashStream.setT(this.T);
+		this.flashStream.setP(this.P);
+
+		this.outletStreams = new Stream[2];
+		this.outletStreams[0] = this.flashStream.clone();
+		this.outletStreams[1] = this.flashStream.clone();
+	}
 /*********************************************************************************************************************/
-  
-  
+
+	
 /**********************************************************************************************************************
-  1) Constructor B : . 
----------------------------------------------------------------------------------------------------------------------*/
-  public FlashSeparator(double T, double P, Stream feedStream) {
-    this.T = T;
-    this.P = P;
-    this.Q = 0.;
-    this.feedStream = new Stream(feedStream);
-  }
+* 1) Constructor B : .
+* ---------------------------------------------------------------------------------------------------------------------
+*/
+	public FlashSeparator(String type, double T, double P, Stream feedStream) {
+		this.type = type;
+		this.status = "";
+		
+		this.T = T;
+		this.P = P;
+		this.Q = 0.;
+
+		this.feedStream = new Stream(feedStream);
+
+		this.flashStream = new Stream(feedStream);
+		this.flashStream.setName("Flash Stream");
+		this.flashStream.setT(this.T);
+		this.flashStream.setP(this.P);
+
+		this.outletStreams = new Stream[2];
+		this.outletStreams[0] = this.flashStream.clone();
+		this.outletStreams[1] = this.flashStream.clone();
+	}
 /*********************************************************************************************************************/
-  
-  
+
+
 /**********************************************************************************************************************
-  2) toString() : Returns the state of the FlashSeparator object in the form of a String. 
----------------------------------------------------------------------------------------------------------------------*/
-  public String toString() {
-   
-    String message = new String();
-    
-    message = "Flash Separator: \n" 
-      + "   T = " + this.T + " K \n"
-      + "   P = " + this.P + " bar \n"
-      + "   Q = " + this.Q + " J/s \n"
-      + this.feedStream.toString() + "\n";
-    
-    return message;
-  }
+* 2) toString() : Returns the state of the FlashSeparator object in the form of a String.
+* ---------------------------------------------------------------------------------------------------------------------
+*/
+	public String toString() {
+
+		String message = new String();
+		DecimalFormat formatter = new DecimalFormat("###,###,##0.00");
+
+		String behaviourCase = new String();
+		if (this.behaviour instanceof NonIdealBehaviour) {
+			behaviourCase = "Non-Ideal Behaviour";
+		} else {
+			behaviourCase = "Ideal Behaviour";
+		}
+
+		message = "Flash Separator: " + this.type + " - " + behaviourCase + " \r\n" 
+				+ "   Status: " + this.status + " \r\n"
+				+ "   T = " + formatter.format(this.T) + " K \r\n" 
+				+ "   P = " + formatter.format(this.P) + " bar \r\n" 
+				+ "   Q = " + formatter.format(this.Q) + " J/h \r\n\r\n" 
+				+ this.feedStream.toString() + "\r\n\r\n"
+				+ this.flashStream.toString() + "\r\n\r\n" 
+				+ "Outlet Streams: \r\n" 
+				+ this.outletStreams[0].toString() + "\r\n" 
+				+ this.outletStreams[1].toString() + "\r\n";
+
+		return message;
+	}
 /*********************************************************************************************************************/
-    
-  
+
+	
 /**********************************************************************************************************************
-  3) flashCalculation() : . 
----------------------------------------------------------------------------------------------------------------------*/
-  public abstract Stream[] flashCalculation() throws FlashCalculationException, FunctionException, NumericalMethodException;
+* 3) flashCalculation() : .
+* ---------------------------------------------------------------------------------------------------------------------
+*/
+	public abstract Stream[] flashCalculation() 
+			throws FlashCalculationException, NumericalMethodException, 
+				FunctionException, StreamException;
 /*********************************************************************************************************************/
-  
-  
+
+	
 /**********************************************************************************************************************
-  4) flash() : . 
----------------------------------------------------------------------------------------------------------------------*/
-  protected void flash(Stream flashStream) throws FlashCalculationException, NumericalMethodException, FunctionException {
-    this.behaviour.flash(flashStream); /* This method should perform a dew-point/bubble-point calculation,
-                                          evaluate the K-values, and solve the Rachford-Rice equation.
-                                          Should return an exception that extends FlashCalculationException in the 
-                                          case where a flash calculation cannot be performed. */
-  }
+* 4) performFlash() : .
+* ---------------------------------------------------------------------------------------------------------------------
+*/
+	protected Stream performFlash() 
+			throws FlashCalculationException, NumericalMethodException, 
+			FunctionException {
+
+		double[] P_bounds = this.behaviour.bubbleDewPointPressures(this.flashStream.clone());
+		/*System.out.println("Flash Pressure: " + flashStream.getP());
+		System.out.println("Bubble Point Pressure: " + P_bounds[0]);
+		System.out.println("Dew Point Pressure: " + P_bounds[1]);*/
+
+		if (this.P < P_bounds[0] && this.P > P_bounds[1]) {
+			this.flashStream = this.behaviour.performFlash(this.flashStream.clone());
+			this.status = "Feed stream was flashed into liquid and vapour phase streams.";
+		} else if (this.P <= P_bounds[1]) {
+			this.flashStream.setVapourFraction(1.);
+			for (int i = 0; i < this.flashStream.getComponentCount(); i++) {
+
+				this.flashStream.setXi(0., i);
+
+				if (this.flashStream.isComponentCondensable(i)) {
+					this.flashStream.setYi(this.flashStream.getZi(i) 
+							/ this.flashStream.getCondensableFraction(), i);
+				} else {
+					this.flashStream.setYi(this.flashStream.getZi(i), i);
+				}
+				
+				this.status = "Feed stream was completely boiled into a vapour phase stream. \r\n" 
+						+ "Bubble point pressure: " + P_bounds[0] + "bar \r\n" 
+						+ "Dew point pressure: " + P_bounds[1] + "bar \r\n";
+			}
+		} else if (this.P >= P_bounds[0]) {
+			this.flashStream.setVapourFraction(0.);
+			for (int i = 0; i < this.flashStream.getComponentCount(); i++) {
+				if (this.flashStream.isComponentCondensable(i)) {
+					this.flashStream.setXi(this.flashStream.getZi(i) / this.flashStream.getCondensableFraction(), i);
+					this.flashStream.setYi(0., i);
+				} else {
+					this.flashStream.setXi(0., i);
+					this.flashStream.setYi(this.flashStream.getZi(i), i);
+				}
+			}
+			
+			this.status = "Feed stream remained in the liquid phase. \r\n" 
+					+ "Bubble point pressure: " + P_bounds[0] + "bar \r\n" 
+					+ "Dew point pressure: " + P_bounds[1] + "bar \r\n";
+		}
+
+		return this.flashStream.clone();
+	}
 /*********************************************************************************************************************/
-  
-  
+
+	
 /**********************************************************************************************************************
-  5) splitPhases() : Splits a stream into liquid (i = 0) and vapour/gas (i = 1) streams. 
----------------------------------------------------------------------------------------------------------------------*/
-  public Stream[] splitPhases(Stream stream) {
-   
-    int componentCountTotal = stream.getComponentCount();
-    int componentCountLiquid = 0;
-    int componentCountGas = 0;
-    double F_liquid = 0.;
-    double F_gas = 0.;
-    double[][] n = new double[2][componentCountTotal];
-    Stream[] outletStreams = new Stream[2];
-    //System.out.println("Test - FlashSeparator Class - splitPhases() Method: Test 1");
-    
-    for (int i = 0; i < componentCountTotal; i++) {
-      if (stream.isComponentCondensable(i)) {
-        if (stream.getXi(i) > 0) {
-          componentCountLiquid++;
-          F_liquid += stream.getCondensableFraction() * (1 - stream.getVapourFraction()) * stream.getXi(i) * stream.getF();
-        }
-        if (stream.getYi(i) > 0) {
-          componentCountGas++;
-          F_gas += stream.getCondensableFraction() * stream.getVapourFraction() * stream.getYi(i) * stream.getF();
-        }
-      }
-      else {
-        F_gas += stream.getZi(i) * stream.getF();
-        componentCountGas++;
-      }
-    }
-    //System.out.println("Test - FlashSeparator Class - splitPhases() Method: Test 2");
-    
-    //System.out.println("Test - FlashSeparator Class - splitPhases() Method: moles of liquid: " + F_liquid);
-    //System.out.println("Test - FlashSeparator Class - splitPhases() Method: moles of gas: " + F_gas);
-    
-    int liquidIndex = 0;
-    int gasIndex = 0;
-    double[] x = new double[componentCountLiquid];
-    double[] y = new double[componentCountGas];
-    int[][] speciesIndices = new int[2][];
-    speciesIndices[0] = new int[componentCountLiquid];
-    speciesIndices[1] = new int[componentCountGas];
-    for (int i = 0; i < componentCountTotal; i++) {
-      if (stream.isComponentCondensable(i)) {
-        if (stream.getXi(i) > 0) {
-          x[liquidIndex] = stream.getXi(i) * (1 - stream.getVapourFraction()) * stream.getCondensableFraction() * stream.getF() / F_liquid;
-          speciesIndices[0][liquidIndex] = stream.getSpeciesIndex(i);
-          //System.out.println("Test - FlashSeparator Class - splitPhases() Method: " + stream.getSpeciesIndex(i) + ": x = " + x[liquidIndex]);
-          liquidIndex++;
-        }
-        if (stream.getYi(i) > 0) {
-          y[gasIndex] = stream.getYi(i) * stream.getVapourFraction() * stream.getCondensableFraction() * stream.getF() / F_gas;
-          speciesIndices[1][gasIndex] = stream.getSpeciesIndex(i);
-          //System.out.println("Test - FlashSeparator Class - splitPhases() Method: " + stream.getSpeciesIndex(i) + ": y = " + y[gasIndex]);
-          gasIndex++;
-        }
-      }
-      else {
-        y[gasIndex] = stream.getZi(i) *  stream.getF() / F_gas;
-        speciesIndices[1][gasIndex] = stream.getSpeciesIndex(i);
-        gasIndex++;
-      }
-    }
-    //System.out.println("Test - FlashSeparator Class - splitPhases() Method: Test 3");
-    
-    outletStreams[0] = new Stream("Liquid Phase", stream.getT(), stream.getP(), F_liquid, 0, x, null, x, speciesIndices[0]);
-    outletStreams[1] = new Stream("Vapour/Gas Phase", stream.getT(), stream.getP(), F_gas, 1, null, y, y, speciesIndices[1]);
-    //System.out.println("Test - FlashSeparator Class - splitPhases() Method: Test 4");
-    
-    return outletStreams;
-    
-  }
+* 5) splitPhases() : Splits a stream into liquid (i = 0) and vapour/gas (i = 1) streams.
+* ---------------------------------------------------------------------------------------------------------------------
+*/
+	protected Stream[] splitPhases() throws StreamException {
+
+		int componentCountTotal = this.flashStream.getComponentCount();
+		int componentCountLiquid = 0;
+		int componentCountGas = 0;
+		double F_liquid = 0.;
+		double F_gas = 0.;
+
+		for (int i = 0; i < componentCountTotal; i++) {
+			if (this.flashStream.isComponentCondensable(i)) {
+				if (this.flashStream.getXi(i) > 0) {
+					componentCountLiquid++;
+					F_liquid += this.flashStream.getCondensableFraction() * (1 - this.flashStream.getVapourFraction())
+							* this.flashStream.getXi(i) * this.flashStream.getF();
+				}
+				if (this.flashStream.getYi(i) > 0) {
+					componentCountGas++;
+					F_gas += this.flashStream.getCondensableFraction() * this.flashStream.getVapourFraction()
+							* this.flashStream.getYi(i) * this.flashStream.getF();
+				}
+			} else {
+				F_gas += this.flashStream.getZi(i) * this.flashStream.getF();
+				componentCountGas++;
+			}
+		}
+
+		int liquidIndex = 0;
+		int gasIndex = 0;
+		double[] x = new double[componentCountLiquid];
+		double[] y = new double[componentCountGas];
+		int[][] speciesIndices = new int[2][];
+		speciesIndices[0] = new int[componentCountLiquid];
+		speciesIndices[1] = new int[componentCountGas];
+		for (int i = 0; i < componentCountTotal; i++) {
+			if (this.flashStream.isComponentCondensable(i)) {
+				if (this.flashStream.getXi(i) > 0) {
+					x[liquidIndex] = this.flashStream.getXi(i) * (1 - this.flashStream.getVapourFraction())
+							* this.flashStream.getCondensableFraction() * this.flashStream.getF() / F_liquid;
+					speciesIndices[0][liquidIndex] = this.flashStream.getSpeciesIndex(i);
+					liquidIndex++;
+				}
+				if (this.flashStream.getYi(i) > 0) {
+					y[gasIndex] = this.flashStream.getYi(i) * this.flashStream.getVapourFraction()
+							* this.flashStream.getCondensableFraction() * this.flashStream.getF() / F_gas;
+					speciesIndices[1][gasIndex] = this.flashStream.getSpeciesIndex(i);
+					gasIndex++;
+				}
+			} else {
+				y[gasIndex] = this.flashStream.getZi(i) * this.flashStream.getF() / F_gas;
+				speciesIndices[1][gasIndex] = this.flashStream.getSpeciesIndex(i);
+				gasIndex++;
+			}
+		}
+
+		this.outletStreams[0] = new Stream("Liquid Phase", this.T, this.P, F_liquid, 0, x, null, x, 
+				speciesIndices[0]);
+		this.outletStreams[1] = new Stream("Vapour/Gas Phase", this.T, this.P, F_gas, 1, null, y, y, 
+				speciesIndices[1]);
+
+		return this.getOutletStreams();
+	}
 /*********************************************************************************************************************/
-    
-  
+
+	
 /**********************************************************************************************************************
-  6) selectReferenceTemperature() : Selects the lowest normal boiling point among all components in the stream as the
-                                    reference temperature for the enthalpy balance. 
----------------------------------------------------------------------------------------------------------------------*/
-  public double selectReferenceTemperature() {
-    
-    double Tref = 0.;
-    
-    for (int i = 0; i < this.feedStream.getComponentCount(); i++) {
-      Tref = Math.min(Tref, Menu.getSpecies(this.feedStream.getSpeciesIndex(i)).getTb());
-    }
-    
-    return Tref;
-  }
-  
+* 6) selectReferenceTemperature() : Selects the lowest normal boiling point among all components in 
+* 									the stream as the reference temperature for the enthalpy balance.
+* ---------------------------------------------------------------------------------------------------------------------
+*/
+	public double selectReferenceTemperature() {
+
+		double Tref = Double.MAX_VALUE;
+
+		for (int i = 0; i < this.feedStream.getComponentCount(); i++) {
+			Tref = Math.min(Tref, Menu.getSpecies(this.feedStream.getSpeciesIndex(i)).getTb());
+		}
+
+		return Tref;
+	}
 /*********************************************************************************************************************/
-  
+
+	
 /**********************************************************************************************************************
-  7) setFeedStreamTemperature() : Sets the temperature of the feed stream. 
----------------------------------------------------------------------------------------------------------------------*/
-  public void setFeedStreamTemperature(double T) {
-    this.feedStream.setT(T);
-  }
+* 7) setFeedStreamTemperature() : Sets the temperature of the feed stream.
+* ---------------------------------------------------------------------------------------------------------------------
+*/
+	public void setFeedStreamTemperature(double T) {
+		this.feedStream.setT(T);
+	}
 /*********************************************************************************************************************/
-  
-  public double getT() {
-   return this.T; 
-  }
-  
-  public void setT(double T) {
-   this.T = T; 
-  }
-  
-  public double getP() {
-   return this.P; 
-  }
-  
-  public void setP(double P) {
-   this.P = P; 
-  }
-  
-  public double getQ() {
-   return this.Q; 
-  }
-  
-  public void setQ(double Q) {
-   this.Q = Q; 
-  }
-  
-  public Stream getFeedStream() {
-   return this.feedStream.clone(); 
-  }
-  
-  public void setFeedStream(Stream feedStream) {
-   this.feedStream = feedStream.clone();
-  }
-  
-  protected Behaviour getBehaviour() {
-    return this.behaviour.clone(); 
-  }
-  
-  protected void setBehaviour(boolean nonIdealBehaviour) {
-    if (!nonIdealBehaviour) {
-     this.behaviour = new Behaviour(); 
-    }
-    else {
-      this.behaviour = new NonIdealBehaviour();
-    }
-  }
-  
+
+	public String getType() {
+		return this.type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+	
+	public String getStatus() {
+		return status;
+	}
+	
+	public void setStatus(String status) {
+		this.status = status;
+	}
+	
+	public double getT() {
+		return this.T;
+	}
+
+	public void setT(double T) {
+		this.T = T;
+		this.flashStream.setT(T);
+		this.outletStreams[0].setT(T);
+		this.outletStreams[1].setT(T);
+	}
+
+	public double getP() {
+		return this.P;
+	}
+
+	public void setP(double P) {
+		this.P = P;
+		this.flashStream.setP(P);
+		this.outletStreams[0].setP(P);
+		this.outletStreams[1].setP(P);
+	}
+
+	public double getQ() {
+		return this.Q;
+	}
+
+	public void setQ(double Q) {
+		this.Q = Q;
+	}
+
+	public Stream getFeedStream() {
+		return this.feedStream.clone();
+	}
+
+	public void setFeedStream(Stream feedStream) {
+		this.feedStream = feedStream.clone();
+	}
+
+	public Stream getFlashStream() {
+		return this.flashStream.clone();
+	}
+
+	public void setFlashStream(Stream flashStream) {
+		this.flashStream = flashStream.clone();
+	}
+
+	public Stream[] getOutletStreams() {
+
+		Stream[] arrayCopy = new Stream[this.outletStreams.length];
+
+		for (int i = 0; i < this.outletStreams.length; i++) {
+			arrayCopy[i] = this.outletStreams[i].clone();
+		}
+
+		return arrayCopy;
+	}
+
+	public void setOutletStreams(Stream[] outletStreams) {
+
+		this.outletStreams = new Stream[outletStreams.length];
+
+		for (int i = 0; i < this.outletStreams.length; i++) {
+			this.outletStreams[i] = outletStreams[i].clone();
+		}
+	}
+
+	protected Behaviour getBehaviour() {
+		return this.behaviour.clone();
+	}
+
+	protected void setBehaviour(boolean nonIdealBehaviour) {
+		if (!nonIdealBehaviour) {
+			this.behaviour = new Behaviour();
+		} else {
+			this.behaviour = new NonIdealBehaviour();
+		}
+	}
+
 }

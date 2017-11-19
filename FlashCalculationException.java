@@ -1,5 +1,5 @@
 public class FlashCalculationException extends Exception {
-  public FlashCalculationException(String message) {
-   super(message); 
-  }
+	public FlashCalculationException(String message) {
+		super(message);
+	}
 }
