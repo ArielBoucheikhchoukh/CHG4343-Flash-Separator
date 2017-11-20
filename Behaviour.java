@@ -1,6 +1,7 @@
 public class Behaviour implements Cloneable {
 
 	public static final double BUBBLE_DEW_POINT_INCREMENT_LENGTH = 10.;
+	public static final double BUBBLE_DEW_POINT_SUB_INCREMENT_FRACTION = 1.;
 	public static final double BUBBLE_DEW_POINT_TOLERANCE = 0.01;
 	public static final int BUBBLE_DEW_POINT_MAX_EVALUATION_COUNT = 100000;
 	public static final double RACHFORD_RICE_INCREMENT_LENGTH = 0.1;
@@ -49,16 +50,15 @@ public class Behaviour implements Cloneable {
 		}
 
 		double[] K = this.calculatePartitionCoefficients(flashStream, components, condensableCount);
-		// System.out.println("First component: z = " + z_cd[0] + ", and K = " + K[0]);
-		// System.out.println("Second component: z = " + z_cd[1] + ", and K = " + K[1]);
 		Function rachfordRice = new RachfordRice(z_cd, K);
 		double vapourFraction = 0.;
 		try {
 			vapourFraction = Menu.findRoot(rachfordRice, null, 0., 1., 
-					Behaviour.RACHFORD_RICE_INCREMENT_LENGTH, Behaviour.RACHFORD_RICE_TOLERANCE, 
+					Behaviour.RACHFORD_RICE_INCREMENT_LENGTH, 
+					BracketingRootFinder.DEFAULT_SUB_INCREMENT_FRACTION, 
+					Behaviour.RACHFORD_RICE_TOLERANCE, 
 					Behaviour.RACHFORD_RICE_MAX_EVALUATION_COUNT);
 		} catch (NumericalMethodException e) {
-
 			throw new FlashNotPossibleException();
 		}
 
@@ -109,17 +109,21 @@ public class Behaviour implements Cloneable {
 * 									dew point temperatures of a stream.
 * ---------------------------------------------------------------------------------------------------------------------
 */
-	public double[] bubbleDewPointTemperatures(Stream stream) 
+	public double[] bubbleDewPointTemperatures(Stream stream, double startPointTemperature) 
 			throws NumericalMethodException, FunctionException {
 
 		BoundedFunction bubblePoint = new BubblePoint(stream);
 		BoundedFunction dewPoint = new DewPoint(stream);
 
-		double T_bp = Menu.findRoot(bubblePoint, null, bubblePoint.getMinX(), true, 
-				Behaviour.BUBBLE_DEW_POINT_INCREMENT_LENGTH, Behaviour.BUBBLE_DEW_POINT_TOLERANCE, 
+		double T_bp = Menu.findRoot(bubblePoint, null, startPointTemperature, true, 
+				Behaviour.BUBBLE_DEW_POINT_INCREMENT_LENGTH, 
+				Behaviour.BUBBLE_DEW_POINT_SUB_INCREMENT_FRACTION, 
+				Behaviour.BUBBLE_DEW_POINT_TOLERANCE, 
 				Behaviour.BUBBLE_DEW_POINT_MAX_EVALUATION_COUNT, false);
-		double T_dp = Menu.findRoot(dewPoint, null, dewPoint.getMinX(), true,
-				Behaviour.BUBBLE_DEW_POINT_INCREMENT_LENGTH, Behaviour.BUBBLE_DEW_POINT_TOLERANCE, 
+		double T_dp = Menu.findRoot(dewPoint, null, startPointTemperature, true,
+				Behaviour.BUBBLE_DEW_POINT_INCREMENT_LENGTH, 
+				Behaviour.BUBBLE_DEW_POINT_SUB_INCREMENT_FRACTION,
+				Behaviour.BUBBLE_DEW_POINT_TOLERANCE, 
 				Behaviour.BUBBLE_DEW_POINT_MAX_EVALUATION_COUNT, false);
 
 		return new double[] { T_bp, T_dp };

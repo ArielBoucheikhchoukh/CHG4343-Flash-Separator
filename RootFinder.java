@@ -94,14 +94,18 @@ public abstract class RootFinder {
 		
 		boolean evaluated = false;
 		int distanceFactor = 2;
+		double f_x = f.evaluate(x, constants); 
+		this.evaluationCount += 1;
 		while (!evaluated) {
 			try {
-				if (Math.abs(f.evaluate(x + distanceFactor * tolerance, constants)) 
-						> Math.abs(f.evaluate(x, constants))) {
+				double f_above = f.evaluate(x + distanceFactor * tolerance * 0.01, constants);
+				double f_below = f.evaluate(x - distanceFactor * tolerance * 0.01, constants);
+				if ((Math.abs(f_above) < Math.abs(f_x))
+						&& (Math.abs(f_below) < Math.abs(f_x))) {
 					this.evaluationCount += 2;
-					return false;
-				} else {
 					return true;
+				} else {
+					return false;
 				}
 			}
 			catch (UndefinedDependentVariableException e) {

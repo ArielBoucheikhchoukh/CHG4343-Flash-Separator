@@ -1,24 +1,29 @@
 public class EnthalpyBalance extends BoundedFunction {
 
 	private double Tref;
-	private boolean isInlet; // true if the unknown temperature streams are inlet streams, 
-								// false if they are outlet streams
+	private boolean isInlet; /* true if the unknown temperature streams are inlet streams, 
+								false if they are outlet streams*/
+	private boolean updatePhaseFractions; /* if true, update the condensable fractions and the 
+	 												phase mole fractions of the unknown temperature streams */	
 	private Stream[] unknownTempStreams; // Inlet or outlet streams, all evaluated at the same temperature
 	private Stream[] inletStreams; // Inlet streams with constant temperatures
 	private Stream[] outletStreams; // Outlet streams with constant temperatures
 	private Behaviour behaviour;
-
 	
+
+
 /**********************************************************************************************************************
 * 1) Constructor
 * ---------------------------------------------------------------------------------------------------------------------
 */
-	public EnthalpyBalance(double Tref, Stream[] unknownTempStreams, Stream[] inletStreams, Stream[] outletStreams,
-			Behaviour behaviour, boolean isInlet) {
+	public EnthalpyBalance(double Tref, Stream[] unknownTempStreams, Stream[] inletStreams, 
+			Stream[] outletStreams, Behaviour behaviour, boolean isInlet, 
+			boolean updatePhaseFractions) {
 
 		super("Enthalpy Balance", 0., 1.);
 		this.Tref = Tref;
 		this.isInlet = isInlet;
+		this.updatePhaseFractions = updatePhaseFractions;
 		this.behaviour = behaviour;
 
 		double[] bounds = { Double.MIN_VALUE, Double.MAX_VALUE };
@@ -72,8 +77,6 @@ public class EnthalpyBalance extends BoundedFunction {
 */
 	protected double evaluateDerivativeWithinBounds(double x, double[] constants) 
 			throws FunctionException {
-		// System.out.println("Test - EnthalpyBalance Class -
-		// evaluateDerivativeWithinBounds Method: x = " + x);
 		return this.evaluateHeat(x, true);
 	}
 /*********************************************************************************************************************/
@@ -92,13 +95,13 @@ public class EnthalpyBalance extends BoundedFunction {
 		if (this.unknownTempStreams != null) {
 			for (int i = 0; i < unknownTempStreams.length; i++) {
 
-				unknownTempStreams[i].setT(T);
-
+				this.unknownTempStreams[i].setT(T, this.updatePhaseFractions);
+				
 				if (this.isInlet) {
-					Q -= this.behaviour.evaluateStreamEnthalpy(this.Tref, unknownTempStreams[i], 
+					Q -= this.behaviour.evaluateStreamEnthalpy(this.Tref, this.unknownTempStreams[i], 
 							derivative);
 				} else {
-					Q += this.behaviour.evaluateStreamEnthalpy(this.Tref, unknownTempStreams[i], 
+					Q += this.behaviour.evaluateStreamEnthalpy(this.Tref, this.unknownTempStreams[i], 
 							derivative);
 				}
 			}
@@ -106,20 +109,60 @@ public class EnthalpyBalance extends BoundedFunction {
 
 		if (this.inletStreams != null) {
 			for (int i = 0; i < inletStreams.length; i++) {
-				Q -= this.behaviour.evaluateStreamEnthalpy(this.Tref, inletStreams[i], derivative);
+				Q -= this.behaviour.evaluateStreamEnthalpy(this.Tref, this.inletStreams[i], derivative);
 			}
 		}
 
 		if (this.outletStreams != null) {
 			for (int i = 0; i < outletStreams.length; i++) {
-				Q += this.behaviour.evaluateStreamEnthalpy(this.Tref, outletStreams[i], derivative);
+				Q += this.behaviour.evaluateStreamEnthalpy(this.Tref, this.outletStreams[i], derivative);
 			}
 		}
 		
 		return Q;
 	}
 /*********************************************************************************************************************/
+	
+	
+	public double getTref() {
+		return this.Tref;
+	}
 
+
+	public void setTref(double Tref) {
+		this.Tref = Tref;
+	}
+
+
+	public boolean isInlet() {
+		return this.isInlet;
+	}
+
+
+	public void setInlet(boolean isInlet) {
+		this.isInlet = isInlet;
+	}
+
+
+	public Behaviour getBehaviour() {
+		return this.behaviour.clone();
+	}
+
+
+	public void setBehaviour(Behaviour behaviour) {
+		this.behaviour = behaviour;
+	}
+
+
+	public boolean getUpdatePhaseFractions() {
+		return this.updatePhaseFractions;
+	}
+
+
+	public void setUpdatePhaseFractions(boolean updatePhaseFractions) {
+		this.updatePhaseFractions = updatePhaseFractions;
+	}
+	
 	
 	private double[] calculateBounds(double minX, double maxX, Stream stream) {
 

@@ -4,8 +4,9 @@ public class RiddersMethodRootFinder extends BracketingRootFinder {
 * 1.1) Constructor A
 * ----------------------------------------------------------------------------------------------------------------------
 */
-	public RiddersMethodRootFinder(double endPoint, double incrementLength, double maxEvaluationCount) {
-		super(endPoint, incrementLength, maxEvaluationCount);
+	public RiddersMethodRootFinder(double endPoint, double incrementLength, double subIncrementFraction, 
+			double maxEvaluationCount) {
+		super(endPoint, incrementLength, subIncrementFraction, maxEvaluationCount);
 	}
 /*********************************************************************************************************************/
 
@@ -14,9 +15,10 @@ public class RiddersMethodRootFinder extends BracketingRootFinder {
 * 1.2) Constructor B
 * ----------------------------------------------------------------------------------------------------------------------
 */
-	public RiddersMethodRootFinder(double incrementLength, boolean positiveDirection, 
-			double maxEvaluationCount, boolean useFunctionBounds) {
-		super(incrementLength, positiveDirection, maxEvaluationCount, useFunctionBounds);
+	public RiddersMethodRootFinder(double incrementLength, double subIncrementFraction, 
+			boolean positiveDirection, double maxEvaluationCount, boolean useFunctionBounds) {
+		super(incrementLength, subIncrementFraction, positiveDirection, maxEvaluationCount, 
+				useFunctionBounds);
 	}
 /*********************************************************************************************************************/
 
@@ -34,7 +36,7 @@ public class RiddersMethodRootFinder extends BracketingRootFinder {
 
 		do {
 			double[] bounds = super.incrementalSearch(f, constants, endBound, tolerance);
-
+			
 			double xL = bounds[0];
 			double xU = bounds[1];
 			double xR_old = 0.;
@@ -66,6 +68,10 @@ public class RiddersMethodRootFinder extends BracketingRootFinder {
 					error = Math.abs(xR - xR_old);
 					xR_old = xR;
 					super.setEvaluationCount(super.getEvaluationCount() + 2);
+					
+					if (error <= tolerance && tolerance == 0.01) {
+						//double test = f.evaluate(xR, constants);
+					}
 					
 					if (error > tolerance || iterationCount == 0) {
 						if (xR < xM) {
@@ -111,8 +117,12 @@ public class RiddersMethodRootFinder extends BracketingRootFinder {
 				
 				foundRoot = !super.checkForAsymptote(f, constants, xR, tolerance);
 			}
-			catch (UndefinedDependentVariableException e) {
-				foundRoot = false;
+			catch (FunctionException e) {
+				if (e instanceof UndefinedDependentVariableException) {
+					foundRoot = false;
+				} else {
+					throw e;
+				}
 			}
 			
 		} while (!foundRoot);

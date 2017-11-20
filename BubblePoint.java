@@ -35,6 +35,7 @@ public class BubblePoint extends BoundedFunction {
 			if (T < component.getTc()) {
 				P_bp += (stream.getZi(i) / stream.getCondensableFraction())
 						* component.evaluateVapourPressure(T, derivative);
+				int test = 0;
 			}
 		}
 

@@ -57,7 +57,15 @@ public abstract class BoundedFunction implements Function {
 
 	protected abstract double evaluateDerivativeWithinBounds(double x, double[] constants) 
 			throws FunctionException;
+	
+	public String getID() {
+		return id;
+	}
 
+	public void setID(String id) {
+		this.id = id;
+	}
+	
 	protected double getMinX() {
 		return this.minX;
 	}

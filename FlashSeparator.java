@@ -7,8 +7,7 @@ public abstract class FlashSeparator {
 	public static final double ENTHALPY_BALANCE_INCREMENT_LENGTH = 10.;
 	public static final double ENTHALPY_BALANCE_TOLERANCE = 0.01;
 	public static final int ENTHALPY_BALANCE_MAX_EVALUATION_COUNT = 500000;
-	public static final double FLASH_TEMPERATURE_INCREMENT = 0.01;
-	public static final double FLASH_TEMPERATURE_TOLERANCE = 1.;
+	public static final double ENTHALPY_BALANCE_SUB_INCREMENT_FRACTION = 1.;
 
 	private String type;
 	private String status;
@@ -19,36 +18,10 @@ public abstract class FlashSeparator {
 	private Stream flashStream;
 	private Stream[] outletStreams;
 	private Behaviour behaviour;
-
+	
 	
 /**********************************************************************************************************************
-* 1) Constructor A : .
-* ---------------------------------------------------------------------------------------------------------------------
-*/
-	public FlashSeparator(String type, double P, Stream feedStream) {
-		this.type = type;
-		this.status = "";
-		
-		this.T = 273.15;
-		this.P = P;
-		this.Q = 0.;
-
-		this.feedStream = new Stream(feedStream);
-
-		this.flashStream = new Stream(feedStream);
-		this.flashStream.setName("Flash Stream");
-		this.flashStream.setT(this.T);
-		this.flashStream.setP(this.P);
-
-		this.outletStreams = new Stream[2];
-		this.outletStreams[0] = this.flashStream.clone();
-		this.outletStreams[1] = this.flashStream.clone();
-	}
-/*********************************************************************************************************************/
-
-	
-/**********************************************************************************************************************
-* 1) Constructor B : .
+* 1) Constructor
 * ---------------------------------------------------------------------------------------------------------------------
 */
 	public FlashSeparator(String type, double T, double P, Stream feedStream) {
@@ -59,11 +32,11 @@ public abstract class FlashSeparator {
 		this.P = P;
 		this.Q = 0.;
 
-		this.feedStream = new Stream(feedStream);
+		this.feedStream = feedStream.clone();
 
-		this.flashStream = new Stream(feedStream);
+		this.flashStream = feedStream.clone();
 		this.flashStream.setName("Flash Stream");
-		this.flashStream.setT(this.T);
+		this.flashStream.setT(this.T, false);
 		this.flashStream.setP(this.P);
 
 		this.outletStreams = new Stream[2];
@@ -144,9 +117,10 @@ public abstract class FlashSeparator {
 					this.flashStream.setYi(this.flashStream.getZi(i), i);
 				}
 				
+				DecimalFormat formatter = new DecimalFormat("###,###,##0.00");
 				this.status = "Feed stream was completely boiled into a vapour phase stream. \r\n" 
-						+ "Bubble point pressure: " + P_bounds[0] + "bar \r\n" 
-						+ "Dew point pressure: " + P_bounds[1] + "bar \r\n";
+						+ "Bubble point pressure: " + formatter.format(P_bounds[0]) + " bar \r\n" 
+						+ "Dew point pressure: " + formatter.format(P_bounds[1]) + " bar \r\n";
 			}
 		} else if (this.P >= P_bounds[0]) {
 			this.flashStream.setVapourFraction(0.);
@@ -160,9 +134,10 @@ public abstract class FlashSeparator {
 				}
 			}
 			
+			DecimalFormat formatter = new DecimalFormat("###,###,##0.00");
 			this.status = "Feed stream remained in the liquid phase. \r\n" 
-					+ "Bubble point pressure: " + P_bounds[0] + "bar \r\n" 
-					+ "Dew point pressure: " + P_bounds[1] + "bar \r\n";
+					+ "Bubble point pressure: " + formatter.format(P_bounds[0]) + " bar \r\n" 
+					+ "Dew point pressure: " + formatter.format(P_bounds[1]) + " bar \r\n";
 		}
 
 		return this.flashStream.clone();
@@ -222,6 +197,8 @@ public abstract class FlashSeparator {
 					gasIndex++;
 				}
 			} else {
+				this.flashStream.setXi(0., i);
+				this.flashStream.setYi(0., i);
 				y[gasIndex] = this.flashStream.getZi(i) * this.flashStream.getF() / F_gas;
 				speciesIndices[1][gasIndex] = this.flashStream.getSpeciesIndex(i);
 				gasIndex++;
@@ -260,8 +237,8 @@ public abstract class FlashSeparator {
 * 7) setFeedStreamTemperature() : Sets the temperature of the feed stream.
 * ---------------------------------------------------------------------------------------------------------------------
 */
-	public void setFeedStreamTemperature(double T) {
-		this.feedStream.setT(T);
+	public void setFeedStreamTemperature(double T, boolean updatePhaseFractions) {
+		this.feedStream.setT(T, updatePhaseFractions);
 	}
 /*********************************************************************************************************************/
 
@@ -287,9 +264,9 @@ public abstract class FlashSeparator {
 
 	public void setT(double T) {
 		this.T = T;
-		this.flashStream.setT(T);
-		this.outletStreams[0].setT(T);
-		this.outletStreams[1].setT(T);
+		this.flashStream.setT(T, false);
+		this.outletStreams[0].setT(T, false);
+		this.outletStreams[1].setT(T, false);
 	}
 
 	public double getP() {

@@ -27,7 +27,7 @@ public class IsothermalHeat extends FlashSeparator {
 
 		double Tref = super.selectReferenceTemperature();
 		EnthalpyBalance enthalpyBalance = new EnthalpyBalance(Tref, null, new Stream[] { new Stream(feedStream) },
-				new Stream[] { new Stream(flashStream) }, super.getBehaviour(), true);
+				new Stream[] { new Stream(flashStream) }, super.getBehaviour(), true, false);
 
 		try {
 			super.setQ(enthalpyBalance.evaluate(enthalpyBalance.getMinX(), new double[] { Tref }));

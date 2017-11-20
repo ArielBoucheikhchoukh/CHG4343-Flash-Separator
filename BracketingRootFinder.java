@@ -2,9 +2,11 @@
 public abstract class BracketingRootFinder extends RootFinder{
 	
 	public static final double DEFAULT_INCREMENT_FACTOR = 100.;
+	public static final double DEFAULT_SUB_INCREMENT_FRACTION = 0.1;
 	
 	private double endPoint;
 	private double incrementLength;
+	private double subIncrementFraction;
 	private int direction;
 	private boolean useFunctionBounds;
 	
@@ -13,10 +15,12 @@ public abstract class BracketingRootFinder extends RootFinder{
 * 1.1) Constructor A
 * ----------------------------------------------------------------------------------------------------------------------
 */
-	public BracketingRootFinder(double endPoint, double incrementLength, double maxEvaluationCount) {
+	public BracketingRootFinder(double endPoint, double incrementLength, double subIncrementFraction, 
+			double maxEvaluationCount) {
 		super(maxEvaluationCount);
 		this.endPoint = endPoint;
 		this.incrementLength = Math.abs(incrementLength);
+		this.subIncrementFraction = Math.abs(subIncrementFraction);
 		this.direction = 1;
 		this.useFunctionBounds = false;
 	}
@@ -27,16 +31,18 @@ public abstract class BracketingRootFinder extends RootFinder{
 * 1.2) Constructor B
 * ----------------------------------------------------------------------------------------------------------------------
 */
-	public BracketingRootFinder(double incrementLength, boolean positiveDirection, 
-			double maxEvaluationCount, boolean useFunctionBounds) {
+	public BracketingRootFinder(double incrementLength, double subIncrementFraction, 
+			boolean positiveDirection, double maxEvaluationCount, boolean useFunctionBounds) {
 		super(maxEvaluationCount);
-		this.endPoint = 0.;
 		this.incrementLength = Math.abs(incrementLength);
+		this.subIncrementFraction = Math.abs(subIncrementFraction);
 		
 		if (positiveDirection) {
 			this.direction = 1;
+			this.endPoint = Double.MAX_VALUE;
 		} else {
 			this.direction = -1;
+			this.endPoint = Double.MIN_VALUE;
 		}
 		
 		this.useFunctionBounds = useFunctionBounds;
@@ -87,13 +93,12 @@ public abstract class BracketingRootFinder extends RootFinder{
 			 * Check Integrity of Root Finding Parameters
 			 * -----------------------------------------------------------------------------
 			 */
+			tolerance = Math.abs(tolerance);
 			
-			if (incrementLength < tolerance) {
-				incrementLength = tolerance * BracketingRootFinder.DEFAULT_INCREMENT_FACTOR;
+			if (this.subIncrementFraction > 1.) {
+				this.subIncrementFraction = BracketingRootFinder.DEFAULT_SUB_INCREMENT_FRACTION;
 			}
 			
-			tolerance = Math.abs(tolerance);
-
 			/*
 			 * Find the Root
 			 * -----------------------------------------------------------------------------
@@ -134,60 +139,72 @@ public abstract class BracketingRootFinder extends RootFinder{
 	protected double[] incrementalSearch(Function f, double[] constants, double startBound,
 			double tolerance) throws NumericalMethodException, FunctionException {
 		
+		if (tolerance == 0.02) {
+			@SuppressWarnings("unused")
+			int test = 0;
+		}
+		
 		double endBound = startBound + (double) this.direction * this.incrementLength;
 		double[] bounds = new double[2];
+		double length = this.incrementLength;
 		
 		boolean uniqueRoot = false; // Flag for a single root within the given increment
 		while (!uniqueRoot) { // Continue this loop until only a single root exists
 			
 			if ((this.direction == 1 && startBound >= this.endPoint) 
-					&& (this.direction == -1 && startBound <= this.endPoint)) {
+					|| (this.direction == -1 && startBound <= this.endPoint)) {
 				throw new NoRootFoundException();
 			}
 			
 			if ((this.direction == 1 && endBound > this.endPoint) 
-					&& (this.direction == -1 && endBound < this.endPoint)) {
+					|| (this.direction == -1 && endBound < this.endPoint)) {
 				endBound = this.endPoint;
 			}
 			
-			int rootCount = 0;
-			double x = startBound;
-
 			double sign = 0;
+			double x = startBound;
 			double newSign = 0;
-			boolean evaluated = false;
-			while (!evaluated) {
-				try {
-					super.setEvaluationCount(super.getEvaluationCount() + 1);
-					sign = Math.signum(f.evaluate(x, constants));
-					evaluated = true;
-				} catch (UndefinedDependentVariableException e) {
-					x = x + (double) this.direction * tolerance;
-				}
-			}
-
-			while ((this.direction == 1 && x < endBound) || (this.direction == -1 && x > endBound)) { 
+			int rootCount = 0;
+			boolean endOfBound = false;
+			do { 
 				// Search the increment within the error tolerance for all roots
 				this.checkEvaluationCount();
-
-				x = x + (double) this.direction * tolerance; // increase x by the error tolerance
+				super.setEvaluationCount(super.getEvaluationCount() + 1);
 				try {
-					super.setEvaluationCount(super.getEvaluationCount() + 1);
 					newSign = Math.signum(f.evaluate(x, constants)); // update the sign of f(x)
-
-					if (newSign != sign) { // Check whether the signs of f(x_i) and f(x_i-1) differ
-						rootCount++; // If so, increase the root count
-						sign = newSign;
-						// System.out.println("Approximate root at x = " + x);
+				} catch (FunctionException e) {
+					if (e instanceof UndefinedDependentVariableException) {
+						rootCount += 1;
+					} else {
+						throw e;
 					}
-				} catch (UndefinedDependentVariableException e) {
 				}
-			}
+				
+				if (x == startBound) {
+					sign = newSign;
+				}
+				if (tolerance == 0.01) {
+					double test = 0.;
+				}
+				if (newSign != sign) { // Check whether the signs of f(x_i) and f(x_i-1) differ
+					rootCount++; // If so, increase the root count
+					sign = newSign;
+					// System.out.println("Approximate root at x = " + x);
+				}
+				
+				x += (double) this.direction * this.subIncrementFraction * length; // increase x
+				
+				if ((this.direction == 1 && x > endBound) || (this.direction == -1 && x < endBound)) {
+					endOfBound = true;
+				}
+				
+			} while (!endOfBound);
 
 			// System.out.println("Root count: " + rootCount);
 			if (rootCount == 0) { // In the case where no roots exist...
-				startBound += incrementLength; // ... move on to the next increment
-				endBound += incrementLength;
+				startBound += this.direction * length; // ... move on to the next increment
+				endBound = startBound + this.direction * this.incrementLength;
+				length = this.incrementLength;
 				// System.out.println("New xU = " + xU);
 			} else if (rootCount == 1) { // In the case where only a single root exists...
 				uniqueRoot = true; // ... exit the loop
@@ -200,7 +217,7 @@ public abstract class BracketingRootFinder extends RootFinder{
 					bounds[1] = startBound;
 				}
 			} else { // In the case where multiple roots exist...
-				incrementLength /= 2; // ... halve the increment and restart
+				length /= 2; // ... halve the increment and restart
 			}
 		}
 
@@ -226,6 +243,16 @@ public abstract class BracketingRootFinder extends RootFinder{
 
 	public void setIncrementLength(double incrementLength) {
 		this.incrementLength = incrementLength;
+	}
+	
+	
+	public double getSubIncrementFraction() {
+		return subIncrementFraction;
+	}
+
+
+	public void setSubIncrementFraction(double subIncrementFraction) {
+		this.subIncrementFraction = subIncrementFraction;
 	}
 
 

@@ -4,8 +4,9 @@ public class BisectionRootFinder extends BracketingRootFinder {
 * 1.1) Constructor A
 * ----------------------------------------------------------------------------------------------------------------------
 */
-	public BisectionRootFinder(double endPoint, double incrementLength, double maxEvaluationCount) {
-		super(endPoint, incrementLength, maxEvaluationCount);
+	public BisectionRootFinder(double endPoint, double incrementLength, double subIncrementFraction, 
+			double maxEvaluationCount) {
+		super(endPoint, incrementLength, subIncrementFraction, maxEvaluationCount);
 	}
 /*********************************************************************************************************************/
 
@@ -14,9 +15,9 @@ public class BisectionRootFinder extends BracketingRootFinder {
 * 1.2) Constructor B
 * ----------------------------------------------------------------------------------------------------------------------
 */
-	public BisectionRootFinder(double incrementLength, boolean positiveDirection, 
-			double maxEvaluationCount, boolean useFunctionBounds) {
-		super(incrementLength, positiveDirection, maxEvaluationCount, useFunctionBounds);
+	public BisectionRootFinder(double incrementLength, double subIncrementFraction, 
+			boolean positiveDirection, double maxEvaluationCount, boolean useFunctionBounds) {
+		super(incrementLength, subIncrementFraction, positiveDirection, maxEvaluationCount, useFunctionBounds);
 	}
 /*********************************************************************************************************************/
 
@@ -81,8 +82,12 @@ public class BisectionRootFinder extends BracketingRootFinder {
 	
 				foundRoot = !super.checkForAsymptote(f, constants, xR, tolerance);
 			} 
-			catch (UndefinedDependentVariableException e) {
-				foundRoot = false;
+			catch (FunctionException e) {
+				if (e instanceof UndefinedDependentVariableException) {
+					foundRoot = false;
+				} else {
+					throw e;
+				}
 			}
 			
 

@@ -17,13 +17,14 @@ public class AdiabaticFeedTemp extends FlashSeparator {
 
 		double Tref = super.selectReferenceTemperature();
 		EnthalpyBalance enthalpyBalance = new EnthalpyBalance(Tref, new Stream[] { new Stream(feedStream) }, null,
-				new Stream[] { new Stream(flashStream) }, super.getBehaviour(), true);
+				new Stream[] { new Stream(flashStream) }, super.getBehaviour(), true, true);
 		try {
 			double T_feed = Menu.findRoot(enthalpyBalance, null, super.getT(), true,
 					FlashSeparator.ENTHALPY_BALANCE_INCREMENT_LENGTH, 
+					FlashSeparator.ENTHALPY_BALANCE_SUB_INCREMENT_FRACTION,
 					FlashSeparator.ENTHALPY_BALANCE_TOLERANCE, 
 					FlashSeparator.ENTHALPY_BALANCE_MAX_EVALUATION_COUNT, false);
-			super.setFeedStreamTemperature(T_feed);
+			super.setFeedStreamTemperature(T_feed, true);
 		} catch (NumericalMethodException | FunctionException e) {
 			System.out.println(e.getMessage());
 			Menu.appendToMessages("Error: Unable to compute feed temperature. \n" + e.getMessage());

@@ -476,7 +476,8 @@ public class Menu {
 
   // RootFinder rootFinder = new NewtonRaphsonRootFinder(maxEvaluationCount);
   RootFinder rootFinder = new RiddersMethodRootFinder(
-    BracketingRootFinder.DEFAULT_INCREMENT_FACTOR * RootFinder.DEFAULT_TOLERANCE,
+    BracketingRootFinder.DEFAULT_INCREMENT_FACTOR * RootFinder.DEFAULT_TOLERANCE, 
+    BracketingRootFinder.DEFAULT_SUB_INCREMENT_FRACTION,
     positiveDirection, RootFinder.DEFAULT_MAX_EVALUATION_COUNT, true);
 
   return rootFinder.findRoot(f, constants, startPoint, RootFinder.DEFAULT_TOLERANCE);
@@ -489,11 +490,11 @@ public class Menu {
 * ----------------------------------------------------------------------------------------------------------------------
 */
  public static double findRoot(Function f, double[] constants, double startPoint, double endPoint,
-   double incrementLength, double tolerance, int maxEvaluationCount) 
+   double incrementLength, double subIncrementFraction, double tolerance, int maxEvaluationCount) 
      throws NumericalMethodException, FunctionException {
 
   // RootFinder rootFinder = new NewtonRaphsonRootFinder(maxEvaluationCount);
-  RootFinder rootFinder = new RiddersMethodRootFinder(endPoint, incrementLength, 
+  RootFinder rootFinder = new RiddersMethodRootFinder(endPoint, incrementLength, subIncrementFraction, 
     maxEvaluationCount);
 
   return rootFinder.findRoot(f, constants, startPoint, tolerance);
@@ -506,13 +507,13 @@ public class Menu {
 * ----------------------------------------------------------------------------------------------------------------------
 */
  public static double findRoot(Function f, double[] constants, double startPoint, 
-   boolean positiveDirection, double incrementLength, double tolerance, int maxEvaluationCount,
-   boolean useFunctionBounds) 
+   boolean positiveDirection, double incrementLength, double subIncrementFraction, 
+   double tolerance, int maxEvaluationCount, boolean useFunctionBounds) 
      throws NumericalMethodException, FunctionException {
 
   // RootFinder rootFinder = new NewtonRaphsonRootFinder(maxEvaluationCount);
-  RootFinder rootFinder = new RiddersMethodRootFinder(incrementLength, positiveDirection,
-    maxEvaluationCount, useFunctionBounds);
+  RootFinder rootFinder = new RiddersMethodRootFinder(incrementLength, subIncrementFraction, 
+    positiveDirection, maxEvaluationCount, useFunctionBounds);
 
   return rootFinder.findRoot(f, constants, startPoint, tolerance);
  }
