@@ -96,48 +96,17 @@ public abstract class FlashSeparator {
 			throws FlashCalculationException, NumericalMethodException, 
 			FunctionException {
 
-		double[] P_bounds = this.behaviour.bubbleDewPointPressures(this.flashStream.clone());
+		double P_bp = this.behaviour.calculateBubblePointPressure(this.flashStream.clone());
+		double P_dp = this.behaviour.calculateDewPointPressure(this.flashStream.clone());;
 		/*System.out.println("Flash Pressure: " + flashStream.getP());
 		System.out.println("Bubble Point Pressure: " + P_bounds[0]);
 		System.out.println("Dew Point Pressure: " + P_bounds[1]);*/
 
-		if (this.P < P_bounds[0] && this.P > P_bounds[1]) {
+		if (this.P < P_bp && this.P > P_dp) {
 			this.flashStream = this.behaviour.performFlash(this.flashStream.clone());
 			this.status = "Feed stream was flashed into liquid and vapour phase streams.";
-		} else if (this.P <= P_bounds[1]) {
-			this.flashStream.setVapourFraction(1.);
-			for (int i = 0; i < this.flashStream.getComponentCount(); i++) {
-
-				this.flashStream.setXi(0., i);
-
-				if (this.flashStream.isComponentCondensable(i)) {
-					this.flashStream.setYi(this.flashStream.getZi(i) 
-							/ this.flashStream.getCondensableFraction(), i);
-				} else {
-					this.flashStream.setYi(this.flashStream.getZi(i), i);
-				}
-				
-				DecimalFormat formatter = new DecimalFormat("###,###,##0.00");
-				this.status = "Feed stream was completely boiled into a vapour phase stream. \r\n" 
-						+ "Bubble point pressure: " + formatter.format(P_bounds[0]) + " bar \r\n" 
-						+ "Dew point pressure: " + formatter.format(P_bounds[1]) + " bar \r\n";
-			}
-		} else if (this.P >= P_bounds[0]) {
-			this.flashStream.setVapourFraction(0.);
-			for (int i = 0; i < this.flashStream.getComponentCount(); i++) {
-				if (this.flashStream.isComponentCondensable(i)) {
-					this.flashStream.setXi(this.flashStream.getZi(i) / this.flashStream.getCondensableFraction(), i);
-					this.flashStream.setYi(0., i);
-				} else {
-					this.flashStream.setXi(0., i);
-					this.flashStream.setYi(this.flashStream.getZi(i), i);
-				}
-			}
-			
-			DecimalFormat formatter = new DecimalFormat("###,###,##0.00");
-			this.status = "Feed stream remained in the liquid phase. \r\n" 
-					+ "Bubble point pressure: " + formatter.format(P_bounds[0]) + " bar \r\n" 
-					+ "Dew point pressure: " + formatter.format(P_bounds[1]) + " bar \r\n";
+		} else {
+			throw new FlashNotPossibleException();
 		}
 
 		return this.flashStream.clone();
@@ -324,11 +293,11 @@ public abstract class FlashSeparator {
 		}
 	}
 
-	protected Behaviour getBehaviour() {
+	public Behaviour getBehaviour() {
 		return this.behaviour.clone();
 	}
 
-	protected void setBehaviour(boolean nonIdealBehaviour) {
+	public void setBehaviour(boolean nonIdealBehaviour) {
 		if (!nonIdealBehaviour) {
 			this.behaviour = new Behaviour();
 		} else {

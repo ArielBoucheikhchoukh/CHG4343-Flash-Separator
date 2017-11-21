@@ -20,7 +20,7 @@ public abstract class BoundedFunction implements Function {
 
 		double y = this.evaluateWithinBounds(x, constants);
 
-		if (Double.isNaN(y)) {
+		if (Double.isNaN(y) || Double.isInfinite(y)) {
 			throw new UndefinedDependentVariableException(this.id, x);
 		}
 

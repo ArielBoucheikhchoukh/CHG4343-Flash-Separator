@@ -71,7 +71,7 @@ public class Stream {
 		this.isCondensable = new boolean[componentCount];
 		this.speciesIndices = speciesIndices.clone();
 
-		this.updateCondensableState(true);
+		this.updateCondensableState(false);
 
 		for (int i = 0; i < componentCount; i++) {
 			if (this.isCondensable[i]) {
@@ -292,12 +292,14 @@ public class Stream {
 		if (updatePhaseFractions) {
 			double oldVpFraction = this.vapourFraction;
 			this.vapourFraction = 0.;
-			for (int i = 0; i < this.getComponentCount(); i++) {
-				if (this.isCondensable[i]) {
-					this.vapourFraction += this.y[i] * oldVpFraction * oldCdFraction;
+			if (this.condensableFraction > 0.) {
+				for (int i = 0; i < this.getComponentCount(); i++) {
+					if (this.isCondensable[i]) {
+						this.vapourFraction += this.y[i] * oldVpFraction * oldCdFraction;
+					}
 				}
+				this.vapourFraction = this.vapourFraction / this.condensableFraction;
 			}
-			this.vapourFraction = this.vapourFraction / this.condensableFraction;
 			
 			for (int i = 0; i < this.getComponentCount(); i++) {
 				if (this.isCondensable[i]) {

@@ -18,9 +18,12 @@ public class Menu {
  
  private static ArrayList<String> messages;
  private static final String constantsFilePath = "IO/Constants.csv"; // IO/Constants.csv
+ private static final String interactionParametersFilePath 
+       = "IO/InteractionParameters.csv"; // IO/InteractionParameters.csv
  private static final String inputFilePath = "IO/Input.txt"; // IO/Input.txt
  private static final String outputFilePath = "IO/Output.txt"; // IO/Output.txt
  private static Species[] speciesList;
+ private static double[][] interactionParameters;
 
  
 /**********************************************************************************************************************
@@ -338,8 +341,8 @@ public class Menu {
     System.out.println("Simulation was successful. \n");
    } catch (FlashCalculationException | NumericalMethodException | FunctionException e) {
     System.out.println(e.getMessage());
-    Menu.appendToMessages("Error: Simulation failed." 
-      + "Flash separation could not be performed. \r\n" 
+    Menu.appendToMessages("\r\nError: Simulation failed." 
+      + " Flash separation could not be performed. \r\n" 
       + e.getMessage() + " \r\n\r\n");
     flashSeparator.setStatus("Simulation failed. \r\n");
    }
@@ -348,13 +351,13 @@ public class Menu {
      Menu.outputFilePath, true);
   } catch (StreamException e) {
    System.out.println(e.getMessage());
-   Menu.appendToMessages("Error: Could not build the FlashSeparator." 
+   Menu.appendToMessages("\r\nError: Could not build the FlashSeparator." 
      + " The composition of the feed stream is inconsistent. \r\n" 
      + e.getMessage() + " \r\n\r\n");
   } catch (Exception e) {
    System.out.println(e.getMessage());
    Menu.appendToMessages(e.getMessage() + "\r\n\r\n");
-   Menu.appendToMessages("Error: Could not build the FlashSeparator. \r\n\r\n");
+   Menu.appendToMessages("\r\nError: Could not build the FlashSeparator. \r\n\r\n");
   }
   
  }
@@ -439,7 +442,18 @@ public class Menu {
 
  
 /**********************************************************************************************************************
-* 8) convertSpeciesNamesToIndices() : Converts an array of species names into
+* 8) getSpecies() : Returns a copy of the species at the given index.
+* ----------------------------------------------------------------------------------------------------------------------
+*/
+ public static double getInteractionParameter(int i, int j) {
+  return Menu.interactionParameters[i][j];
+ }
+/*********************************************************************************************************************/
+
+ 
+ 
+/**********************************************************************************************************************
+* 9) convertSpeciesNamesToIndices() : Converts an array of species names into
 *           an array of corresponding species indices.
 * ----------------------------------------------------------------------------------------------------------------------
 */
@@ -468,7 +482,7 @@ public class Menu {
 
  
 /**********************************************************************************************************************
-* 9.1) findRoot() :
+* 10.1) findRoot() :
 * ----------------------------------------------------------------------------------------------------------------------
 */
  public static double findRoot(Function f, double[] constants, double startPoint, 
@@ -486,7 +500,7 @@ public class Menu {
 
  
 /**********************************************************************************************************************
-* 9.2) findRoot() :
+* 11.2) findRoot() :
 * ----------------------------------------------------------------------------------------------------------------------
 */
  public static double findRoot(Function f, double[] constants, double startPoint, double endPoint,
@@ -503,7 +517,7 @@ public class Menu {
 
  
 /**********************************************************************************************************************
-* 9.3) findRoot() :
+* 11.3) findRoot() :
 * ----------------------------------------------------------------------------------------------------------------------
 */
  public static double findRoot(Function f, double[] constants, double startPoint, 
@@ -522,7 +536,7 @@ public class Menu {
  
  
 /**********************************************************************************************************************
-* 10) appendToMessages() :
+* 12) appendToMessages() :
 * ----------------------------------------------------------------------------------------------------------------------
 */
  public static void appendToMessages(String message) {

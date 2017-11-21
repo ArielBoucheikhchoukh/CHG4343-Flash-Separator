@@ -139,9 +139,8 @@ public abstract class BracketingRootFinder extends RootFinder{
 	protected double[] incrementalSearch(Function f, double[] constants, double startBound,
 			double tolerance) throws NumericalMethodException, FunctionException {
 		
-		if (tolerance == 0.02) {
-			@SuppressWarnings("unused")
-			int test = 0;
+		if (tolerance == 1. && this.endPoint > 464) {
+			double test = 0.;
 		}
 		
 		double endBound = startBound + (double) this.direction * this.incrementLength;
@@ -170,31 +169,55 @@ public abstract class BracketingRootFinder extends RootFinder{
 				// Search the increment within the error tolerance for all roots
 				this.checkEvaluationCount();
 				super.setEvaluationCount(super.getEvaluationCount() + 1);
-				try {
-					newSign = Math.signum(f.evaluate(x, constants)); // update the sign of f(x)
-				} catch (FunctionException e) {
-					if (e instanceof UndefinedDependentVariableException) {
-						rootCount += 1;
-					} else {
-						throw e;
+				boolean evaluated = false;
+				do {
+					try {
+						newSign = Math.signum(f.evaluate(x, constants)); // update the sign of f(x)
+						evaluated = true;
+					} catch (FunctionException e) {
+						if (e instanceof UndefinedDependentVariableException) {
+							if (tolerance == 1. && this.endPoint > 464) {
+								@SuppressWarnings("unused")
+								int test = 0;
+							}
+							if (x != startBound) {
+								rootCount++;
+							} else {
+								startBound += (double) this.direction * Math.min(this.subIncrementFraction 
+										* length, tolerance);
+								x = startBound;
+								if (startBound > endBound) {
+									endOfBound = true;
+								}
+							}
+						} else {
+							throw e;
+						}
 					}
-				}
+				} while (!evaluated);
 				
 				if (x == startBound) {
 					sign = newSign;
 				}
-				if (tolerance == 0.01) {
+				if (tolerance == 1. && this.endPoint > 464) {
 					double test = 0.;
 				}
-				if (newSign != sign) { // Check whether the signs of f(x_i) and f(x_i-1) differ
+				if (newSign != sign && !endOfBound) { // Check whether the signs of f(x_i) and f(x_i-1) differ
 					rootCount++; // If so, increase the root count
 					sign = newSign;
+					if (tolerance == 1. && this.endPoint > 464) {
+						@SuppressWarnings("unused")
+						int test = 0;
+					}
 					// System.out.println("Approximate root at x = " + x);
 				}
 				
-				x += (double) this.direction * this.subIncrementFraction * length; // increase x
-				
-				if ((this.direction == 1 && x > endBound) || (this.direction == -1 && x < endBound)) {
+				if ((this.direction == 1 && x < endBound) || (this.direction == -1 && x > endBound)) {
+					x += (double) this.direction * this.subIncrementFraction * length; // increase x
+					if ((this.direction == 1 && x > endBound) || (this.direction == -1 && x < endBound)) {
+						x = endBound;
+					}
+				} else {
 					endOfBound = true;
 				}
 				
@@ -202,12 +225,21 @@ public abstract class BracketingRootFinder extends RootFinder{
 
 			// System.out.println("Root count: " + rootCount);
 			if (rootCount == 0) { // In the case where no roots exist...
+				if (tolerance == 1. && this.endPoint > 464) {
+					@SuppressWarnings("unused")
+					double test = 0.;
+				}
+				
 				startBound += this.direction * length; // ... move on to the next increment
 				endBound = startBound + this.direction * this.incrementLength;
 				length = this.incrementLength;
 				// System.out.println("New xU = " + xU);
 			} else if (rootCount == 1) { // In the case where only a single root exists...
 				uniqueRoot = true; // ... exit the loop
+				
+				if (tolerance == 1. && this.endPoint > 464) {
+					double test = 0.;
+				}
 				
 				if (this.direction == 1) {
 					bounds[0] = startBound;
@@ -217,7 +249,12 @@ public abstract class BracketingRootFinder extends RootFinder{
 					bounds[1] = startBound;
 				}
 			} else { // In the case where multiple roots exist...
+				if (tolerance == 1.) {
+					double test = 0.;
+				}
+				
 				length /= 2; // ... halve the increment and restart
+				endBound = startBound + (double) this.direction * length;
 			}
 		}
 

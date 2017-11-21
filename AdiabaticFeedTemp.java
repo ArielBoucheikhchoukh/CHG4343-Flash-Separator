@@ -16,8 +16,8 @@ public class AdiabaticFeedTemp extends FlashSeparator {
 		Stream flashStream = super.performFlash();
 
 		double Tref = super.selectReferenceTemperature();
-		EnthalpyBalance enthalpyBalance = new EnthalpyBalance(Tref, new Stream[] { new Stream(feedStream) }, null,
-				new Stream[] { new Stream(flashStream) }, super.getBehaviour(), true, true);
+		EnthalpyBalance enthalpyBalance = new EnthalpyBalance(Tref, new Stream[] { new Stream(feedStream) }, 
+				null, new Stream[] { new Stream(flashStream) }, super.getBehaviour(), true, true);
 		try {
 			double T_feed = Menu.findRoot(enthalpyBalance, null, super.getT(), true,
 					FlashSeparator.ENTHALPY_BALANCE_INCREMENT_LENGTH, 
