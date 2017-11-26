@@ -5,7 +5,7 @@
 
 public class VapourPressure extends Correlation {
 
-	public static final int constantCount = 5;
+	public static final int CONSTANT_COUNT = 5;
 
 	public VapourPressure(String id) {
 		super(id);
@@ -42,7 +42,7 @@ public class VapourPressure extends Correlation {
 	
 	
 	public int getConstantCount() {
-		return VapourPressure.constantCount;
+		return VapourPressure.CONSTANT_COUNT;
 	}
 
 }

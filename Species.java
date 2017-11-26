@@ -4,9 +4,8 @@ public class Species {
 	public static final int ENTHALPY_LIQUID = 1;
 	public static final int ENTHALPY_VAPOUR = 2;
 
-	public static final int propertyCount = 31;
-	public static final int physicalPropertyCount = 8;
-	public static final int correlationCount = 3;
+	public static final int PHYSICAL_PROPERTY_COUNT = 8;
+	public static final int CORRELATION_COUNT = 3;
 
 	private String name;
 	private int index;
@@ -19,19 +18,21 @@ public class Species {
 	private double Vc;
 	private double Zc;
 	private Correlation[] correlations;
+	private int[][] subGroups;
 
 	
 /**********************************************************************************************************************
 * 1) Constructor
 * ----------------------------------------------------------------------------------------------------------------------
 */
-	public Species(String name, int index, double[] properties) {
-
-		// check if properties is of the correct length (31)
-
-		// Store Physical Properties
+	public Species(String name, int index, double[] properties, double[] correlationParameters, 
+			int[][] subGroups) {
+		
+		//Store Identifiers
 		this.name = name;
 		this.index = index;
+		
+		// Store Physical Properties
 		this.molarMass = properties[0];
 		this.Tb = properties[1];
 		this.latentHeat = properties[2];
@@ -42,27 +43,29 @@ public class Species {
 		this.Zc = properties[7];
 
 		// Initialize Correlations
-		this.correlations = new Correlation[Species.correlationCount];
+		this.correlations = new Correlation[Species.CORRELATION_COUNT];
 
 		this.correlations[VAPOUR_PRESSURE] = new VapourPressure("Vapour Pressure of " + this.name);
 		this.correlations[ENTHALPY_LIQUID] = new EnthalpyLiquid("Liquid-Phase Enthalpy of " + this.name);
 		this.correlations[ENTHALPY_VAPOUR] = new EnthalpyVapour("Vapour-Phase Enthalpy of " + this.name);
 
-		int position = Species.physicalPropertyCount;
+		int j = 0;
 		double[] C;
-		for (int i = 0; i < Species.correlationCount; i++) {
+		for (int i = 0; i < Species.CORRELATION_COUNT; i++) {
 			int constantCount = this.correlations[i].getConstantCount();
 
 			C = new double[constantCount];
-			System.arraycopy(properties, position, C, 0, constantCount);
+			System.arraycopy(correlationParameters, j, C, 0, constantCount);
 
-			position += constantCount;
-			this.correlations[i].setParameters(C, properties[position], properties[position + 1],
-					(int) properties[position + 2]);
+			j += constantCount;
+			this.correlations[i].setParameters(C, correlationParameters[j], 
+					correlationParameters[j + 1],
+					(int) correlationParameters[j + 2]);
 
-			position += 3;
+			j += 3;
 		}
-
+		
+		this.setSubGroups(subGroups);
 	}
 /*********************************************************************************************************************/
 
@@ -85,19 +88,43 @@ public class Species {
 		this.Vc = source.Vc;
 		this.Zc = source.Zc;
 
-		// Initialize Correlations and Store Parameters
-		this.correlations = new Correlation[Species.correlationCount];
-		for (int i = 0; i < Species.correlationCount; i++) {
+		// Initialize Correlations
+		this.correlations = new Correlation[Species.CORRELATION_COUNT];
+		for (int i = 0; i < Species.CORRELATION_COUNT; i++) {
 			this.correlations[i] = source.correlations[i].clone();
 		}
-
+		
+		//Store Sub-Group Counts
+		this.setSubGroups(source.subGroups);
 	}
-	/*********************************************************************************************************************/
+/*********************************************************************************************************************/
 
 	
-	public double[] getPhysicalProperties() {
+/**********************************************************************************************************************
+* 3) clone()
+* ----------------------------------------------------------------------------------------------------------------------
+*/
+	public Species clone() {
+		return new Species(this);
+	}
+/*********************************************************************************************************************/
+
+
+	public static int getCorrelationParameterCount() {
+		
+		return  VapourPressure.CONSTANT_COUNT + 3
+				+ EnthalpyLiquid.CONSTANT_COUNT + 3
+				+ EnthalpyVapour.CONSTANT_COUNT + 3;
+	}
+	
+	
+	public double[] getProperties() {
 		return new double[] { this.molarMass, this.Tb, this.latentHeat, this.accentricFactor, this.Tc, 
 				this.Pc, this.Vc, this.Zc };
+	}
+	
+	public int getNumberOfSubGroupTypes() {
+		return this.subGroups[0].length;
 	}
 
 	public double evaluateVapourPressure(double T, boolean derivative) throws FunctionException {
@@ -132,7 +159,7 @@ public class Species {
 					new double[] { this.Tb, hL, 1000 * this.latentHeat });
 		}
 	}
-
+	
 	public String getName() {
 		return this.name;
 	}
@@ -147,6 +174,14 @@ public class Species {
 
 	public void setIndex(int index) {
 		this.index = index;
+	}
+	
+	public double getMolarMass() {
+		return this.molarMass;
+	}
+
+	public void setMolarMass(double molarMass) {
+		this.molarMass = molarMass;
 	}
 
 	public double getTb() {
@@ -204,9 +239,59 @@ public class Species {
 	public void setZc(double Zc) {
 		this.Zc = Zc;
 	}
-
+	
+	public Correlation[] getCorrelations() {
+		
+		Correlation[] correlationsCopy = new Correlation[this.correlations.length];
+		
+		for (int i = 0; i < this.correlations.length; i++) {
+			correlationsCopy[i] = this.correlations[i].clone();
+		}
+		
+		return correlationsCopy;
+	}
+	
 	public Correlation getCorrelation(int correlationIndex) {
 		return (Correlation) this.correlations[correlationIndex].clone();
+	}
+	
+	public void setCorrelations(Correlation[] correlations) {
+		
+		this.correlations = new Correlation[correlations.length];
+		
+		for (int i = 0; i < correlations.length; i++) {
+			this.correlations[i] = correlations[i].clone();
+		}
+	}
+	
+	public int[][] getSubGroups() {
+		
+		int[][] subGroupsCopy = new int[2][this.subGroups[0].length];
+		
+		for (int i = 0; i < this.subGroups[0].length; i++) {
+			subGroupsCopy[0][i] = this.subGroups[0][i];
+			subGroupsCopy[1][i] = this.subGroups[1][i];
+		}
+		
+		return subGroupsCopy;
+	}
+	
+	public int getNumberOfSubGroup(int subGroupIndex) {
+		for (int i = 0; i < this.subGroups[0].length; i++) {
+			if (this.subGroups[0][i] == subGroupIndex) {
+				return this.subGroups[1][i];
+			}
+		}
+		return 0;
+	}
+	
+	public void setSubGroups(int[][] subGroups) {
+		this.subGroups = new int[2][subGroups[0].length];
+		
+		for (int i = 0; i < this.subGroups[0].length; i++) {
+			this.subGroups[0][i] = subGroups[0][i];
+			this.subGroups[1][i] = subGroups[1][i];
+		}
 	}
 
 }
