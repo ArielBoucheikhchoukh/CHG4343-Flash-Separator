@@ -1,8 +1,5 @@
-﻿Flash Case,Behaviour Case,Temperature (°C),Tank Pressure (bar),Flowrate (mol/h),0
-2,0,100,2,1,0
-Component,Mole Fraction,,,,0
-Water,0.4,,,,0
-Cyclohexane,0.2,,,,0
-Pentane,0.3,,,,0
-Ethane,0.1,,,,0
-,,,,,0
+﻿Flash Case,Behaviour Case,Temperature (°C),Tank Pressure (bar),Flowrate (mol/h),
+2,0,144.85,5,1,
+Component,Mole Fraction,
+Hexane,0.4,
+Water,0.6,
