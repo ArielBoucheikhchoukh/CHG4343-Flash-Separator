@@ -14,7 +14,15 @@ public class EnthalpyLiquid extends Correlation {
 	public EnthalpyLiquid(String id, double[] C, double minX, double maxX, int form) {
 		super(id, C, minX, maxX, form);
 	}
-
+	
+	public EnthalpyLiquid(EnthalpyLiquid source) {
+		super(source);
+	}
+	
+	public EnthalpyLiquid clone() {
+		return new EnthalpyLiquid(this);
+	}
+	
 	protected double evaluateWithinBounds(double x, double[] constants) {
 		double T = x;
 		double Tref = constants[0];

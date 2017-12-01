@@ -57,9 +57,55 @@ public class EnthalpyBalance extends BoundedFunction {
 	}
 /*********************************************************************************************************************/
 
+
+/**********************************************************************************************************************
+* 2) Copy Constructor
+* ---------------------------------------------------------------------------------------------------------------------
+*/
+	public EnthalpyBalance(EnthalpyBalance source) {
+
+		super(source);
+		this.Tref = source.Tref;
+		this.isInlet = source.isInlet;
+		this.updatePhaseFractions = source.updatePhaseFractions;
+		this.behaviour = source.behaviour.clone();
+		
+		if (source.unknownTempStreams != null) {
+			this.unknownTempStreams = new Stream[unknownTempStreams.length];
+			for (int i = 0; i < unknownTempStreams.length; i++) {
+				this.unknownTempStreams[i] = source.unknownTempStreams[i].clone();
+			}
+		}
+
+		if (source.inletStreams != null) {
+			this.inletStreams = new Stream[inletStreams.length];
+			for (int i = 0; i < inletStreams.length; i++) {
+				this.inletStreams[i] = source.inletStreams[i].clone();
+			}
+		}
+
+		if (source.outletStreams != null) {
+			this.outletStreams = new Stream[outletStreams.length];
+			for (int i = 0; i < outletStreams.length; i++) {
+				this.outletStreams[i] = source.outletStreams[i];
+			}
+		}
+	}
+/*********************************************************************************************************************/
+
+
+/**********************************************************************************************************************
+* 3) clone()
+* ---------------------------------------------------------------------------------------------------------------------
+*/
+	public EnthalpyBalance clone() {
+		return new EnthalpyBalance(this);
+	}
+/*********************************************************************************************************************/
+
 	
 /**********************************************************************************************************************
-* 2) evaluateWithinBounds() : Returns the energy that must be added to the system.
+* 4) evaluateWithinBounds() : Returns the energy that must be added to the system.
 * ---------------------------------------------------------------------------------------------------------------------
 */
 	protected double evaluateWithinBounds(double x, double[] constants) throws FunctionException {
@@ -71,7 +117,7 @@ public class EnthalpyBalance extends BoundedFunction {
 
 	
 /**********************************************************************************************************************
-* 3) evaluateDerivativeWithinBounds() : Returns the derivative of the energy that must be added to 
+* 5) evaluateDerivativeWithinBounds() : Returns the derivative of the energy that must be added to 
 * 										the system with respect to the unknown temperature.
 * ---------------------------------------------------------------------------------------------------------------------
 */
@@ -83,7 +129,7 @@ public class EnthalpyBalance extends BoundedFunction {
 
 	
 /**********************************************************************************************************************
-* 4) evaluateHeat() : Returns the heat of the flash separation, Q. 
+* 6) evaluateHeat() : Returns the heat of the flash separation, Q. 
 * 						If Q is positive, then energy must be added to the system. 
 * 						If Q is negative, then energy must be removed from the system.
 * ---------------------------------------------------------------------------------------------------------------------
@@ -95,7 +141,7 @@ public class EnthalpyBalance extends BoundedFunction {
 		if (this.unknownTempStreams != null) {
 			for (int i = 0; i < unknownTempStreams.length; i++) {
 
-				this.unknownTempStreams[i].setT(T, this.updatePhaseFractions);
+				this.unknownTempStreams[i].setT(T, true, this.updatePhaseFractions);
 				
 				if (this.isInlet) {
 					Q -= this.behaviour.evaluateStreamEnthalpy(this.Tref, this.unknownTempStreams[i], 
@@ -120,6 +166,29 @@ public class EnthalpyBalance extends BoundedFunction {
 		}
 		
 		return Q;
+	}
+/*********************************************************************************************************************/
+
+	
+/**********************************************************************************************************************
+* 7) calculateBounds()
+* ---------------------------------------------------------------------------------------------------------------------
+*/
+	private double[] calculateBounds(double minX, double maxX, Stream stream) {
+
+		for (int i = 0; i < stream.getComponentCount(); i++) {
+			minX = Math.max(minX,
+					Menu.getSpecies(stream.getSpeciesIndex(i)).getCorrelation(Species.ENTHALPY_LIQUID).getMinX());
+			minX = Math.max(minX,
+					Menu.getSpecies(stream.getSpeciesIndex(i)).getCorrelation(Species.ENTHALPY_VAPOUR).getMinX());
+
+			maxX = Math.min(maxX,
+					Menu.getSpecies(stream.getSpeciesIndex(i)).getCorrelation(Species.ENTHALPY_LIQUID).getMaxX());
+			maxX = Math.min(maxX,
+					Menu.getSpecies(stream.getSpeciesIndex(i)).getCorrelation(Species.ENTHALPY_VAPOUR).getMaxX());
+		}
+		
+		return new double[] { minX, maxX };
 	}
 /*********************************************************************************************************************/
 	
@@ -163,23 +232,6 @@ public class EnthalpyBalance extends BoundedFunction {
 		this.updatePhaseFractions = updatePhaseFractions;
 	}
 	
-	
-	private double[] calculateBounds(double minX, double maxX, Stream stream) {
-
-		for (int i = 0; i < stream.getComponentCount(); i++) {
-			minX = Math.max(minX,
-					Menu.getSpecies(stream.getSpeciesIndex(i)).getCorrelation(Species.ENTHALPY_LIQUID).getMinX());
-			minX = Math.max(minX,
-					Menu.getSpecies(stream.getSpeciesIndex(i)).getCorrelation(Species.ENTHALPY_VAPOUR).getMinX());
-
-			maxX = Math.min(maxX,
-					Menu.getSpecies(stream.getSpeciesIndex(i)).getCorrelation(Species.ENTHALPY_LIQUID).getMaxX());
-			maxX = Math.min(maxX,
-					Menu.getSpecies(stream.getSpeciesIndex(i)).getCorrelation(Species.ENTHALPY_VAPOUR).getMaxX());
-		}
-		
-		return new double[] { minX, maxX };
-	}
 
 	public Stream[] getInletStreams() {
 

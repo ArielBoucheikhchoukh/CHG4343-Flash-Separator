@@ -6,6 +6,7 @@
 public class EnthalpyVapour extends Correlation {
 
 	public static final int CONSTANT_COUNT = 4;
+	public static final double R = 8.314;
 
 	public EnthalpyVapour(String id) {
 		super(id);
@@ -14,7 +15,15 @@ public class EnthalpyVapour extends Correlation {
 	public EnthalpyVapour(String id, double[] C, double minX, double maxX, int form) {
 		super(id, C, minX, maxX, form);
 	}
-
+	
+	public EnthalpyVapour(EnthalpyVapour source) {
+		super(source);
+	}
+	
+	public EnthalpyVapour clone() {
+		return new EnthalpyVapour(this);
+	}
+	
 	protected double evaluateWithinBounds(double x, double[] constants) {
 
 		double T = x;
@@ -23,7 +32,7 @@ public class EnthalpyVapour extends Correlation {
 		double lambda = constants[2];
 		double[] C = super.getC();
 
-		double Hv = Correlation.R 
+		double Hv = EnthalpyVapour.R 
 				* ((C[0] * (T - Tb)) 
 						+ (0.5 * C[1] * (Math.pow(T, 2) - Math.pow(Tb, 2)))
 						+ ((1. / 3.) * C[2] * (Math.pow(T, 3) - Math.pow(Tb, 3)))
@@ -37,7 +46,7 @@ public class EnthalpyVapour extends Correlation {
 		double dhLdT = constants[1];
 		double[] C = super.getC();
 
-		double dHvdT = Correlation.R 
+		double dHvdT = EnthalpyVapour.R 
 				* (C[0] 
 						+ C[1] * T 
 						+ C[2] * Math.pow(T, 2) 

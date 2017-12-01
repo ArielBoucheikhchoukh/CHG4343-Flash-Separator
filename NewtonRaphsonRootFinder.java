@@ -1,17 +1,38 @@
 public class NewtonRaphsonRootFinder extends RootFinder {
 
+	
 /**********************************************************************************************************************
 * 1) Constructor
 * ----------------------------------------------------------------------------------------------------------------------
 */
 	public NewtonRaphsonRootFinder(double maxEvaluationCount) {
-		super(maxEvaluationCount);
+		super("Newton-Raphson Root Finder", maxEvaluationCount);
 	}
 /*********************************************************************************************************************/
 
+
+/**********************************************************************************************************************
+* 2) Copy Constructor
+* ----------------------------------------------------------------------------------------------------------------------
+*/
+	public NewtonRaphsonRootFinder(NewtonRaphsonRootFinder source) {
+		super(source);
+	}
+/*********************************************************************************************************************/
+	
+
+/**********************************************************************************************************************
+* 3) clone()
+* ----------------------------------------------------------------------------------------------------------------------
+*/
+	public NewtonRaphsonRootFinder clone() {
+		return new NewtonRaphsonRootFinder(this);
+	}
+/*********************************************************************************************************************/
+	
 	
 /**********************************************************************************************************************
-* 2) rootFindingMethod() : Finds a single root of function f.
+* 4) rootFindingMethod() : Finds a single root of function f.
 * ----------------------------------------------------------------------------------------------------------------------
 */
 	protected double rootFindingMethod(Function f, double[] constants, double startPoint, double tolerance)
@@ -30,12 +51,12 @@ public class NewtonRaphsonRootFinder extends RootFinder {
 					newX = oldX - f.evaluate(oldX, constants) / f.evaluateDerivative(oldX, constants);
 					evaluated = true;
 				}
-				catch (UndefinedDependentVariableException e) {
+				catch (UndefinedFunctionException e) {
 					oldX =+ tolerance;
 				}
 			}
 
-			super.checkEvaluationCount();
+			super.checkEvaluationCount(f);
 			error = Math.abs(newX - oldX);
 			oldX = newX;
 		} while (error > tolerance);

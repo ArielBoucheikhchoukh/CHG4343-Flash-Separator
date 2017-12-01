@@ -6,7 +6,7 @@ public class BisectionRootFinder extends BracketingRootFinder {
 */
 	public BisectionRootFinder(double endPoint, double incrementLength, double subIncrementFraction, 
 			double maxEvaluationCount) {
-		super(endPoint, incrementLength, subIncrementFraction, maxEvaluationCount);
+		super("Bisection Root Finder", endPoint, incrementLength, subIncrementFraction, maxEvaluationCount);
 	}
 /*********************************************************************************************************************/
 
@@ -17,13 +17,33 @@ public class BisectionRootFinder extends BracketingRootFinder {
 */
 	public BisectionRootFinder(double incrementLength, double subIncrementFraction, 
 			boolean positiveDirection, double maxEvaluationCount, boolean useFunctionBounds) {
-		super(incrementLength, subIncrementFraction, positiveDirection, maxEvaluationCount, useFunctionBounds);
+		super("Bisection Root Finder", incrementLength, subIncrementFraction, positiveDirection, maxEvaluationCount, useFunctionBounds);
 	}
 /*********************************************************************************************************************/
 
+
+/**********************************************************************************************************************
+* 2) Copy Constructor
+* ----------------------------------------------------------------------------------------------------------------------
+*/
+	public BisectionRootFinder(BisectionRootFinder source) {
+		super(source);
+	}
+/*********************************************************************************************************************/
+	
+
+/**********************************************************************************************************************
+* 3) clone()
+* ----------------------------------------------------------------------------------------------------------------------
+*/
+	public BisectionRootFinder clone() {
+		return new BisectionRootFinder(this);
+	}
+/*********************************************************************************************************************/
+	
 	
 /**********************************************************************************************************************
-* 2) rootFindingMethod() : Finds and returns a root of function f.
+* 4) rootFindingMethod() : Finds and returns a root of function f.
 * ----------------------------------------------------------------------------------------------------------------------
 */
 	protected double rootFindingMethod(Function f, double[] constants, double startPoint, double tolerance)
@@ -55,7 +75,7 @@ public class BisectionRootFinder extends BracketingRootFinder {
 				double error = 0.;
 				int iterationCount = 0;
 				do {
-					super.checkEvaluationCount();
+					super.checkEvaluationCount(f);
 	
 					xR = 0.5 * (xL + xU);
 					f_xR = f.evaluate(xR, constants);
@@ -83,7 +103,7 @@ public class BisectionRootFinder extends BracketingRootFinder {
 				foundRoot = !super.checkForAsymptote(f, constants, xR, tolerance);
 			} 
 			catch (FunctionException e) {
-				if (e instanceof UndefinedDependentVariableException) {
+				if (e instanceof UndefinedFunctionException) {
 					foundRoot = false;
 				} else {
 					throw e;

@@ -4,6 +4,7 @@ public abstract class RootFinder {
 	public static final double DEFAULT_TOLERANCE = 0.01;
 	public static final int DEFAULT_MAX_EVALUATION_COUNT = 100000;
 	
+	private String name;
 	private double evaluationCount;
 	private double maxEvaluationCount;
 
@@ -11,15 +12,36 @@ public abstract class RootFinder {
 * 1) Constructor
 * ----------------------------------------------------------------------------------------------------------------------
 */
-	public RootFinder(double maxEvaluationCount) {
+	public RootFinder(String name, double maxEvaluationCount) {
+		this.name = name;
 		this.evaluationCount = 0.;
 		this.maxEvaluationCount = Math.abs(maxEvaluationCount);
 	}
 /*********************************************************************************************************************/
 
+
+/**********************************************************************************************************************
+* 2) Copy Constructor
+* ----------------------------------------------------------------------------------------------------------------------
+*/
+	public RootFinder(RootFinder source) {
+		this.name = source.name;
+		this.evaluationCount = source.evaluationCount;
+		this.maxEvaluationCount = source.maxEvaluationCount;
+	}
+/*********************************************************************************************************************/
+
+
+/**********************************************************************************************************************
+* 3) clone()
+* ----------------------------------------------------------------------------------------------------------------------
+*/
+	public abstract RootFinder clone();
+/*********************************************************************************************************************/
+
 	
 /**********************************************************************************************************************
-* 2.1) findRoot() : Checks the integrity of the parameters and calls the root
+* 4.1) findRoot() : Checks the integrity of the parameters and calls the root
 * 					finding method. startPoint can either be taken to be the lower bound or
 * 					starting point of an incremental search, or as an initial guess.
 * ----------------------------------------------------------------------------------------------------------------------
@@ -33,7 +55,7 @@ public abstract class RootFinder {
 
 	
 /**********************************************************************************************************************
-* 2.2) findRoot() : Checks the integrity of the parameters and calls the root
+* 4.2) findRoot() : Checks the integrity of the parameters and calls the root
 * 					finding method. startPoint can either be taken to be the lower bound or
 * 					starting point of an incremental search, or as an initial guess.
 * ----------------------------------------------------------------------------------------------------------------------
@@ -58,7 +80,7 @@ public abstract class RootFinder {
 
 	
 /**********************************************************************************************************************
-* 3) rootFindingMethod() : Finds a single root of function f; to be overridden
+* 5) rootFindingMethod() : Finds a single root of function f; to be overridden
 * 							by children of RootFinder.
 * ----------------------------------------------------------------------------------------------------------------------
 */
@@ -70,22 +92,28 @@ public abstract class RootFinder {
 
 	
 /**********************************************************************************************************************
-* 4) checkEvaluationCount() : Safeguard that checks whether the root finding
+* 6) checkEvaluationCount() : Safeguard that checks whether the root finding
 * 								method has exceeded the provided maximum number of function evaluations; 
 * 								to be called periodically from rootFindingMethod().
 * ----------------------------------------------------------------------------------------------------------------------
 */
-	protected void checkEvaluationCount() 
+	protected void checkEvaluationCount(Function f) 
 			throws TooManyFunctionEvaluationsException {
 		if (this.evaluationCount > this.maxEvaluationCount) {
-			throw new TooManyFunctionEvaluationsException();
+			String functionName = "Function";
+			if (f instanceof BoundedFunction) {
+				BoundedFunction boundedF = (BoundedFunction) f;
+				functionName = boundedF.getID();
+			}
+			
+			throw new TooManyFunctionEvaluationsException(this.name, functionName, this, f);
 		}
 	}
 /*********************************************************************************************************************/
 
 	
 /**********************************************************************************************************************
-* 5) checkForAsymptote() : Checks whether the critical point x is a root
+* 7) checkForAsymptote() : Checks whether the critical point x is a root
 * 							(false) or an asymptote (true).
 * ----------------------------------------------------------------------------------------------------------------------
 */
@@ -108,14 +136,22 @@ public abstract class RootFinder {
 					return false;
 				}
 			}
-			catch (UndefinedDependentVariableException e) {
+			catch (UndefinedFunctionException e) {
 				distanceFactor++;
 			}
 		}
 		return true;
 	}
 /*********************************************************************************************************************/
+	
+	public String getName() {
+		return this.name;
+	}
 
+	public void setName(String name) {
+		this.name = name;
+	}
+	
 	public double getEvaluationCount() {
 		return this.evaluationCount;
 	}

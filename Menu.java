@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.text.DecimalFormat;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -15,19 +16,22 @@ public class Menu {
   *   If running in Eclipse, the file paths should begin with 'src/'.
   *   If running in Dr Java, the file paths should omit 'src/'.
   */
+ public static final double GAS_CONSTANT = 8.314;
  
- private static ArrayList<String> messages;
  private static final String SPECIES_FILE_PATH = "IO/Species.csv"; // IO/Spcies.csv
  private static final String SUB_GROUPS_FILE_PATH = "IO/SubGroups.csv"; // IO/SubGroups.csv
  private static final String INTERACTION_PARAMETERS_FILE_PATH 
        = "IO/InteractionParameters.csv"; // IO/InteractionParameters.csv
- private static final String INPUT_FILE_PATH = "IO/Input.txt"; // IO/Input.txt
+ private static final String INPUT_FILE_PATH = "IO/Input.csv"; // IO/Input.csv
  private static final String OUTPUT_FILE_PATH = "IO/Output.txt"; // IO/Output.txt
+ 
  private static Species[] species;
  private static int[] subGroupIndices;
  private static double[] subGroupRelativeVolume; //R
  private static double[] subGroupRelativeSurfaceArea; //Q
  private static double[][] interactionParameters;
+ 
+ private static ArrayList<String> messages;
 
  
 /**********************************************************************************************************************
@@ -36,7 +40,7 @@ public class Menu {
 */
  public static void main(String[] args) {
   Menu.messages = new ArrayList<String>();
-  Menu.launchMenu(); // Go to method 2
+  Menu.launchMainMenu(); // Go to method 2
  }
 /*********************************************************************************************************************/
 
@@ -45,54 +49,79 @@ public class Menu {
 * 2) launchMenu() : Starts the menu.
 * ---------------------------------------------------------------------------------------------------------------------
 */
- public static void launchMenu() {
+ public static void launchMainMenu() {
   
-  int menuIndex = 0;
-  boolean correctInput = false;
-  boolean exit = false;
+ /*
+ * I. Initialize Local Variables
+ * -----------------------------------------------------------------------------
+ */
+  int menuIndex = 0; // Denotes the menu option the user has chosen
+  boolean correctInput = false; // true if the user input is legal
+  boolean exit = false; // true if the user chooses to terminate the program
   
-  ArrayList<Double> operatingConditions = new ArrayList<Double>();
-  ArrayList<String> componentNames = new ArrayList<String>();
-  ArrayList<Double> moleFractions = new ArrayList<Double>();
+  /* operatingConditionsList : 
+   *   [0] = flash case
+   *   [1] = behaviour case
+   *   [2] = input temperature [K]
+   *   [3] = input pressure [bar]
+   *   [4] = input flow rate [mol/h]
+   * */
+  ArrayList<Double> operatingConditionsList = new ArrayList<Double>(); 
+   
   
-  Scanner keyboardReader = new Scanner(System.in);
+  ArrayList<String> componentNamesList = new ArrayList<String>(); // Names of Components in Feed
+  ArrayList<Double> moleFractionsList = new ArrayList<Double>(); // Feed Mole Fractions
+  
+  Scanner keyboardReader = new Scanner(System.in); // Reads keyboard input
   
   try {
-   // Read Input File
-   Menu.readFlashSeparatorInputFile(operatingConditions, componentNames, moleFractions);
-   Menu.readSpeciesData(componentNames);
-   
    // Clear Output File
    Menu.outputToFile("", Menu.OUTPUT_FILE_PATH, false);
-
-   // Menu
+   
+  /*
+  * II. Read Input Files 
+  * ----------------------------------------------------------------------------
+  */
+  // Read Input.csv File
+   Menu.readFlashSeparatorInputFile(operatingConditionsList, componentNamesList, moleFractionsList);
+   
+   // Read Species.csv, SubGroups.csv and InteractionParameters.csv Files
+   Menu.readSpeciesData(componentNamesList);
+    
+  /*
+  * III. Main Menu
+  * -----------------------------------------------------------------------------
+  */
    while (!exit) {
     do {
-     String menuPrompt = new String();
+     
+     // Build menu prompt for user
+     String menuPrompt = "";
+
      menuPrompt = "Flash Separation Input: \n";
 
      String operatingTemp = new String();
-     switch ((int) operatingConditions.get(0).doubleValue()) {
+     switch ((int) operatingConditionsList.get(0).doubleValue()) {
      case 0:
       menuPrompt += "   Calculate Isothermal Heat \n";
-      operatingTemp = "   Feed Temperature: " 
-        + operatingConditions.get(2).doubleValue() + " K \n";
+      operatingTemp = "   Feed Temperature: " + operatingConditionsList.get(2).doubleValue()
+        + " K \n";
       break;
      case 1:
       menuPrompt += "   Calculate Flash Temperature \n";
-      operatingTemp = "   Feed Temperature: " 
-        + operatingConditions.get(2).doubleValue() + " K \n";
+      operatingTemp = "   Feed Temperature: " + operatingConditionsList.get(2).doubleValue()
+        + " K \n";
       break;
      case 2:
       menuPrompt += "   Calculate Feed Temperature \n";
-      operatingTemp = "   Flash Temperature: " 
-        + operatingConditions.get(2).doubleValue() + " K \n";
+      operatingTemp = "   Flash Temperature: " + operatingConditionsList.get(2).doubleValue()
+        + " K \n";
       break;
      default:
       break;
      }
 
-     switch ((int) operatingConditions.get(1).doubleValue()) {
+     switch ((int) operatingConditionsList.get(1).doubleValue()) {
      case 0:
       menuPrompt += "   Ideal Behaviour \n";
       break;
@@ -104,76 +133,75 @@ public class Menu {
      }
 
      menuPrompt += operatingTemp;
-     menuPrompt += "   Tank Pressure: " + operatingConditions.get(3).doubleValue() 
-       + " bar \n";
-     menuPrompt += "   Feed Flow Rate: " + operatingConditions.get(4).doubleValue() 
-       + " mol/h \n\n"
+     menuPrompt += "   Tank Pressure: " + operatingConditionsList.get(3).doubleValue() + " bar \n";
+     menuPrompt += "   Feed Flow Rate: " + operatingConditionsList.get(4).doubleValue() + " mol/h \n\n"
        + "Feed Stream Components: \n";
 
-     for (int i = 0; i < componentNames.size(); i++) {
-      menuPrompt += componentNames.get(i) + ": " 
-        + moleFractions.get(i).doubleValue() * 100.
+     for (int i = 0; i < componentNamesList.size(); i++) {
+      menuPrompt += componentNamesList.get(i) + ": " + moleFractionsList.get(i).doubleValue() * 100.
         + " % \n";
      }
 
-     menuPrompt += "\n\nEnter 0 to terminate the program."
-       + " \nEnter 1 to proceed to the simulation." 
-       + " \nEnter 9 for instructions.";
+     menuPrompt += "\n\nEnter 0 to terminate the program." + " \nEnter 1 to proceed to the simulation."
+       + " \nEnter 2 for instructions.";
      
-     System.out.println(menuPrompt);
+     // Print Menu Prompt
+     System.out.println("\r\n" + menuPrompt + "\r\n");
 
      correctInput = false;
      try {
-      menuIndex = keyboardReader.nextInt();
+      menuIndex = keyboardReader.nextInt(); // Store user-selected option
       correctInput = true;
-
-      if (menuIndex != 0 && menuIndex != 1 && menuIndex != 9) {
+      
+      // Verify whether user input is legal
+      if (menuIndex < 0 || menuIndex > 2) {
+       System.out.println("Error: Incorrect input. Enter 0, 1 or 2.");
        correctInput = false;
       }
      } catch (Exception e) {
-      System.out.println("Error: Incorrect input. Enter an integer value.");
+      System.out.println("Error: Incorrect input. Enter 0, 1 or 2.");
      }
 
     } while (!correctInput);
 
     switch (menuIndex) {
-     case 0: 
-      exit = true;
-      break;
-     case 1:
-      Menu.messages.clear();
-      Menu.runSimulation(operatingConditions, componentNames, moleFractions);
- 
-      // Print to Output File
-      String messagesString = new String();
-      for (int i = 0; i < Menu.messages.size(); i++) {
-       messagesString += Menu.messages.get(i);
-      }
- 
-      Menu.outputToFile(messagesString + "\r\n\r\n", Menu.OUTPUT_FILE_PATH, true);
- 
-      System.out.println("\nPress any key to continue.");
-      keyboardReader.next();
-      
-      break;
-     case 9:
-      
-      break;
-     default:
-      exit = true;
-      break;
+    case 0: // Terminate the program
+     exit = true;
+     break;
+    case 1: // Run the Simulation
+     Menu.messages.clear();
+     Menu.runSimulation(operatingConditionsList, componentNamesList, moleFractionsList);
+
+     // Print to Output File
+     String messagesString = new String();
+     for (int i = 0; i < Menu.messages.size(); i++) {
+      messagesString += Menu.messages.get(i);
+     }
+     Menu.outputToFile(messagesString + "\r\n\r\n", Menu.OUTPUT_FILE_PATH, true);
+     System.out.println("\nPress any key to continue.");
+     keyboardReader.next();
+     break;
+    case 2: // Prompt User to Read Instructions File
+     System.out.println("\r\nRefer to the Instructions.txt file. \r\n");
+     break;
+    default:
+     exit = true;
+     break;
     }
    }
-  } catch (Exception e) {
+  }
+  catch (Exception e) {
    System.out.println("\r\nError: Incorrect input. \r\n" + e.getMessage() + "\r\n\r\n");
+   Menu.outputToFile("\r\nError: Incorrect input. \r\n" + e.getMessage() + "\r\n\r\n", 
+     Menu.OUTPUT_FILE_PATH, true);
   }
   
   keyboardReader.close();
   System.out.println("Program terminated.");
  }
 /*********************************************************************************************************************/
-
  
+
 /**********************************************************************************************************************
 * 3) readFlashSeparatorInputFile() : Reads the user input from the input file.
 * ---------------------------------------------------------------------------------------------------------------------
@@ -185,8 +213,13 @@ public class Menu {
   Scanner fileReader;
   Scanner lineReader;
   
-  fileReader = new Scanner(new FileInputStream(Menu.INPUT_FILE_PATH));
-  fileReader.useDelimiter(",");
+  try {
+   fileReader = new Scanner(new FileInputStream(Menu.INPUT_FILE_PATH));
+   fileReader.useDelimiter(",");
+  }
+  catch (Exception e) {
+   throw new FileNotFoundException(Menu.INPUT_FILE_PATH + " was not found.");
+  }
 
   /*
   * Read Cases and Operating Conditions of the Flash Separator
@@ -194,18 +227,57 @@ public class Menu {
   */
   fileReader.nextLine(); // Skip Row 1
   
-  operatingConditions.add(new Double((double) fileReader.nextInt())); // Move to A3
-  operatingConditions.add(new Double((double) fileReader.nextInt())); // Move to B3
-  operatingConditions.add(new Double(fileReader.nextDouble() + 273.15)); // Move to Cell C3
-  operatingConditions.add(new Double(fileReader.nextDouble())); // Move to Cell D3
-  operatingConditions.add(new Double(fileReader.nextDouble())); // Move to Cell E3
-
+  try {
+   operatingConditions.add(new Double((double) fileReader.nextInt())); // Move to A2
+   operatingConditions.add(new Double((double) fileReader.nextInt())); // Move to B2
+   operatingConditions.add(new Double(fileReader.nextDouble() + 273.15)); // Move to Cell C2
+   operatingConditions.add(new Double(fileReader.nextDouble())); // Move to Cell D2
+   operatingConditions.add(new Double(fileReader.nextDouble())); // Move to Cell E2
+  }
+  catch (Exception e) {
+   fileReader.close();
+   throw new IOException("Inputted operating conditions in " + Menu.INPUT_FILE_PATH 
+     + " are incorrect.");
+  }
+  
+  if (operatingConditions.get(0).doubleValue() < 0 || operatingConditions.get(0).doubleValue() > 2) {
+   fileReader.close();
+   throw new IllegalArgumentException("IllegalArgumentException: Inputted flash case is incorrect.");
+  }
+  else if (operatingConditions.get(1).doubleValue() < 0 || operatingConditions.get(1).doubleValue() > 1) {
+   fileReader.close();
+   throw new IllegalArgumentException("IllegalArgumentException: Inputted behaviour case is incorrect.");
+  }
+  else if (operatingConditions.get(2).doubleValue() <= 0 ) {
+   fileReader.close();
+   throw new IllegalArgumentException("IllegalArgumentException: Inputted temperature is below absolute zero.");
+  }
+  else if (operatingConditions.get(2).doubleValue() > Double.MAX_VALUE) {
+   fileReader.close();
+   throw new IllegalArgumentException("IllegalArgumentException: Inputted temperature is above maximum.");
+  }
+  else if (operatingConditions.get(3).doubleValue() <= 0 ) {
+   fileReader.close();
+   throw new IllegalArgumentException("IllegalArgumentException: Inputted pressure is less than or equal to 0.");
+  }
+  else if (operatingConditions.get(3).doubleValue() > Double.MAX_VALUE) {
+   fileReader.close();
+   throw new IllegalArgumentException("IllegalArgumentException: Inputted pressure is above maximum.");
+  }
+  else if (operatingConditions.get(4).doubleValue() <= 0 ) {
+   fileReader.close();
+   throw new IllegalArgumentException("IllegalArgumentException: Inputted molar flow rate is less than or equal to 0.");
+  }
+  else if (operatingConditions.get(4).doubleValue() > Double.MAX_VALUE) {
+   fileReader.close();
+   throw new IllegalArgumentException("IllegalArgumentException: Inputted molar flow rate is above maximum.");
+  }
+  
   /*
   * Read Feed Stream Composition
   * -----------------------------------------------------------------------------
   */
-  fileReader.nextLine(); // Move to end of Row 2
-  fileReader.nextLine(); // Skip Row 3
+  fileReader.nextLine(); // Skip current row
 
   // Store the names of the components in the feed and their respective mole fractions
   while (fileReader.hasNext()) {
@@ -220,7 +292,7 @@ public class Menu {
    catch (Exception e) {
     lineReader.close();
     fileReader.close();
-    throw new IOException("Abberant carriage return characters in " + Menu.INPUT_FILE_PATH 
+    throw new IOException("Illegal carriage return characters in " + Menu.INPUT_FILE_PATH 
       + ". \r\nDelete all blank lines after the final component.");
    }
 
@@ -231,15 +303,35 @@ public class Menu {
      throw new IOException("A species name is missing in " + Menu.SPECIES_FILE_PATH + ".");
     } else {
      System.out.println(name);
+     
      componentNames.add(name);
-     moleFractions.add(new Double(lineReader.nextDouble()));
+     
+     double z = lineReader.nextDouble();
+     moleFractions.add(new Double(z));
+     
+     if (z <= 0.) {
+      lineReader.close();
+      fileReader.close();
+      throw new IllegalArgumentException("IllegalArgumentException: Inputted mole fraction is less than or equal to 0.");
+     }
     }
    }
 
    lineReader.close();
   }
-
   fileReader.close();
+  
+  if (!Menu.areArrayListElementsUnique(componentNames)) {
+   throw new IOException("Component names in " + Menu.INPUT_FILE_PATH + " are not unique.");
+  }
+  
+  double sum = 0.;
+  for (int i = 0; i < moleFractions.size(); i++) {
+   sum += moleFractions.get(i).doubleValue();
+  }
+  if (sum > 1.001 || sum < 0.999) {
+   throw new IOException("Mole fractions in " + Menu.INPUT_FILE_PATH + " do not sum to unity.");
+  }
  }
 /*********************************************************************************************************************/
 
@@ -255,35 +347,35 @@ public class Menu {
   * I. Local Variable Declarations
  * -----------------------------------------------------------------------------
  */
-  Scanner fileReader;
-  Scanner lineReader;
+  Scanner fileReader; // Parses comma-delimited text files
+  Scanner lineReader; // Parses an individual line from a file
   
-  int speciesCount = speciesNamesList.size();;
-  int subGroupCount = 0;
-  int speciesSubGroupCount;
-  int masterTotalSubGroupCount;
-  int totalSubGroupCount;
-  int storedSpeciesIterator = 0;
-  int speciesIndex;
-  int subGroupIndex;
-  double interactionParameter;
+  int speciesCount = speciesNamesList.size(); // Number of required species
+  int subGroupCount = 0; // Number of required sub-group types
+  int speciesSubGroupCount; // Number of a given sub-group type associated with a given species
+  int masterTotalSubGroupCount; // Number of defined sub-group types in Species.csv
+  int totalSubGroupCount; // Number of defined sub-group types in all other files
+  int storedSpeciesIterator = 0; // Denotes the instantaneous number of required species objects that have been built
+  int speciesIndex; // Unique identifier of a species
+  int subGroupIndex; // Unique identifier of a sub-group
+  double interactionParameter; // Describes the interaction between two sub-groups i and j
   
-  String name;
+  String name; // Stores species and sub-group names
   
-  ArrayList<String> allSpeciesNamesList;
-  ArrayList<Integer> allSpeciesIndicesList;
-  ArrayList<String> speciesToStoreNamesList;
-  ArrayList<String> allSubGroupNamesList;
-  ArrayList<String> allSubGroupNamesList2;
-  ArrayList<Integer> allSubGroupIndicesList;
-  ArrayList<Integer> subGroupPositionsList;
-  ArrayList<String> subGroupNamesList;
-  ArrayList<Integer> speciesSubGroupIndicesList;
-  ArrayList<Integer> speciesSubGroupCountsList;
+  ArrayList<String> allSpeciesNamesList; // Stores the names of all defined species in Species.csv
+  ArrayList<Integer> allSpeciesIndicesList; // Stores the indices of all defined species in Species.csv
+  ArrayList<String> speciesToStoreNamesList; // Stores the names of all required species from Input.csv
+  ArrayList<String> allSubGroupNamesList; // Stores the names of all defined sub-groups in a given file
+  ArrayList<String> allSubGroupNamesList2; // Stores the names of all defined sub-groups (row headers) in InteractionParameters.csv
+  ArrayList<Integer> allSubGroupIndicesList; // Stores the indices of all defined sub-groups in SubGroups.csv
+  ArrayList<Integer> subGroupPositionsList; // Stores the column positions of all defined sub-groups in Species.csv
+  ArrayList<String> subGroupNamesList; // Stores the names of all required sub-groups 
+  ArrayList<Integer> speciesSubGroupPositionsList; // Stores the column positions (Species.csv) of all sub-group types in a given species
+  ArrayList<Integer> speciesSubGroupCountsList; // Stores the numbers of all sub-group types in a given species
   
-  double[] properties;
-  double[] correlationParameters;
-  int[][] speciesSubGroups;
+  double[] properties; // Stores the properties of a given species
+  double[] correlationParameters; // Stores the correlation parameters of a given species
+  int[][] speciesSubGroups; // Stores the sub-group column positions and numbers of a given species
   
   boolean isUnique;
   
@@ -291,9 +383,14 @@ public class Menu {
   * II. Store Species Data
   * -----------------------------------------------------------------------------
   */
-  // i) Open the Species.csv File
-  fileReader = new Scanner(new FileInputStream(Menu.SPECIES_FILE_PATH));
-  fileReader.useDelimiter(",");
+  // i) Open Species.csv
+  try {
+   fileReader = new Scanner(new FileInputStream(Menu.SPECIES_FILE_PATH));
+   fileReader.useDelimiter(",");
+  }
+  catch (Exception e) {
+   throw new FileNotFoundException(Menu.SPECIES_FILE_PATH + " was not found.");
+  }
   
   // ii) Initialize Arrays
   Menu.species = new Species[speciesCount]; // Initialize the species array
@@ -330,7 +427,7 @@ public class Menu {
   lineReader.close();
   
   // v) Store Species Data and Create Species Objects
-  while (fileReader.hasNextLine() || speciesToStoreNamesList.size() > 0) {
+  while (fileReader.hasNextLine()) {
    lineReader = new Scanner(fileReader.nextLine()); // Store current row
    lineReader.useDelimiter(",");
    
@@ -374,7 +471,7 @@ public class Menu {
       }
       
       //Store the species sub-groups 
-      speciesSubGroupIndicesList = new ArrayList<Integer>();
+      speciesSubGroupPositionsList = new ArrayList<Integer>();
       speciesSubGroupCountsList = new ArrayList<Integer>();
       for (int j = 0; j < masterTotalSubGroupCount; j++) {
        String token = lineReader.next();
@@ -386,7 +483,7 @@ public class Menu {
          
          //If this species possesses this sub-group, 
          //add it to the species' own array
-         speciesSubGroupIndicesList.add(new Integer(j));
+         speciesSubGroupPositionsList.add(new Integer(j));
          speciesSubGroupCountsList.add(new Integer(speciesSubGroupCount));
          
          //Check if the current sub-group has already been flagged as in use
@@ -410,9 +507,9 @@ public class Menu {
       }
       
       //Convert the species sub-group array lists into arrays
-      speciesSubGroups = new int[2][speciesSubGroupIndicesList.size()];
-      for (int j = 0; j < speciesSubGroupIndicesList.size(); j++) {
-       speciesSubGroups[0][j] = speciesSubGroupIndicesList.get(j).intValue();
+      speciesSubGroups = new int[2][speciesSubGroupPositionsList.size()];
+      for (int j = 0; j < speciesSubGroupPositionsList.size(); j++) {
+       speciesSubGroups[0][j] = speciesSubGroupPositionsList.get(j).intValue();
        speciesSubGroups[1][j] = speciesSubGroupCountsList.get(j).intValue();
       }
       
@@ -430,6 +527,7 @@ public class Menu {
   }
   fileReader.close();
   
+  // vi) Verify Data Integrity
   if (speciesToStoreNamesList.size() != 0) {
    throw new IOException("The following species were not found in " + Menu.SPECIES_FILE_PATH 
      + " : " + speciesToStoreNamesList.toString());
@@ -445,13 +543,18 @@ public class Menu {
   }
   
  /*
- * Store Sub-Group Data
+ * III. Store Sub-Group Data
  * -----------------------------------------------------------------------------
  */
-  // i) Open the SubGroups.csv File
-  fileReader = new Scanner(new FileInputStream(Menu.SUB_GROUPS_FILE_PATH));
-  fileReader.useDelimiter(",");
-  fileReader.nextLine();
+  // i) Open SubGroups.csv
+  try {
+   fileReader = new Scanner(new FileInputStream(Menu.SUB_GROUPS_FILE_PATH));
+   fileReader.useDelimiter(",");
+   fileReader.nextLine();
+  }
+  catch (Exception e) {
+   throw new FileNotFoundException(Menu.SUB_GROUPS_FILE_PATH + " was not found.");
+  }
   
   // ii) Initialize Arrays
   Menu.subGroupIndices = new int[subGroupCount];
@@ -461,7 +564,7 @@ public class Menu {
   allSubGroupNamesList.clear();
   allSubGroupIndicesList = new ArrayList<Integer>();
   
-  // iii) Read and store the properties of each sub-group to be used in the simulation
+  // iii) Store Sub-Groups
   while (fileReader.hasNext()) {
    lineReader = new Scanner(fileReader.nextLine()); // Store current row
    lineReader.useDelimiter(",");
@@ -499,6 +602,7 @@ public class Menu {
    Menu.species[i].setSubGroups(speciesSubGroups);
   }
   
+  // v) Verify Data Integrity
   if (!Menu.areArrayListElementsUnique(allSubGroupNamesList)) {
    throw new IOException("Sub-group names in " + Menu.SUB_GROUPS_FILE_PATH + " are not unique.");
   }
@@ -514,24 +618,29 @@ public class Menu {
   }
   
  /*
- * Store Interaction Parameters
+ * IV. Store Interaction Parameters
  * -----------------------------------------------------------------------------
  */
-  // i) Open the InteractionParameters.csv file
-  fileReader = new Scanner(new FileInputStream(Menu.INTERACTION_PARAMETERS_FILE_PATH));
-  fileReader.useDelimiter(",");
-  fileReader.nextLine(); // Skip a row
-  
+  // i) Open InteractionParameters.csv
+  try {
+   fileReader = new Scanner(new FileInputStream(Menu.INTERACTION_PARAMETERS_FILE_PATH));
+   fileReader.useDelimiter(",");
+   fileReader.nextLine(); // Skip a row
+  }
+  catch (Exception e) {
+   throw new FileNotFoundException(Menu.INTERACTION_PARAMETERS_FILE_PATH + " was not found.");
+  }
+   
   lineReader = new Scanner(fileReader.nextLine()); // Store current row
   lineReader.useDelimiter(",");
   lineReader.next();
   
-  // ii) Initialize arrays
+  // ii) Initialize Arrays
   Menu.interactionParameters = new double[subGroupCount][subGroupCount];
   allSubGroupNamesList.clear();
   allSubGroupNamesList2 = new ArrayList<String>();
   
-  // iii) Store the sub-group names along the horizontal axis
+  // iii) Store Sub-Group Names (Row Headers)
   totalSubGroupCount = 0;
   while (lineReader.hasNext()) {
    allSubGroupNamesList.add(lineReader.next());
@@ -539,7 +648,7 @@ public class Menu {
   }
   lineReader.close();
   
-  // iV) Read and store the interaction parameters of all sub-groups to be used in the simulation
+  // iV) Store Interaction Parameters
   while (fileReader.hasNext()) {
    lineReader = new Scanner(fileReader.nextLine()); // Store current row
    lineReader.useDelimiter(",");
@@ -565,6 +674,7 @@ public class Menu {
   }
   fileReader.close();
   
+  // v) Verify Data Integrity
   if (!Menu.areArrayListElementsUnique(allSubGroupNamesList)) {
    throw new IOException("Sub-group names in " + Menu.INTERACTION_PARAMETERS_FILE_PATH 
      + " are not unique.");
@@ -622,30 +732,35 @@ public class Menu {
    try {
     flashStreams = flashSeparator.flashCalculation();
     System.out.println("Simulation was successful. \n");
-    Menu.outputToFile("\r\nSimulation was successful." 
-      + " Flash separation was performed. \r\n", Menu.OUTPUT_FILE_PATH, true);
-   } catch (FlashCalculationException | NumericalMethodException | FunctionException e) {
+    Menu.outputToFile("\r\nSimulation was successful. \r\n", Menu.OUTPUT_FILE_PATH, true);
+    Menu.outputToFile("\r\n\r\n" + flashSeparator.toString(), 
+      Menu.OUTPUT_FILE_PATH, true);
+   } catch (FlashCalculationException | NumericalMethodException | FunctionException 
+     | IllegalArgumentException e) {
+    
     System.out.println(e.getMessage());
-    Menu.outputToFile("\r\nError: Simulation failed." 
-      + " Flash separation could not be performed. \r\n" 
+    Menu.outputToFile("\r\nError: Simulation failed. "
       + e.getMessage() + " \r\n\r\n", Menu.OUTPUT_FILE_PATH, true);
+   } catch (Exception e) {
+    System.out.println("\r\nUnknown Error. Simulation failed. \r\n\r\n" + e.getMessage());
+    Menu.appendToMessages(e.getMessage() + "\r\n\r\n");
+    Menu.appendToMessages("\r\nUnknown Error. Simulation failed. \r\n\r\n");
    }
-   
-   Menu.outputToFile("\r\n\r\n" + flashSeparator.toString(), 
-     Menu.OUTPUT_FILE_PATH, true);
   } catch (StreamException e) {
    System.out.println(e.getMessage());
    Menu.appendToMessages("\r\nError: Could not build the FlashSeparator." 
      + " The composition of the feed stream is inconsistent. \r\n" 
      + e.getMessage() + " \r\n\r\n");
   } catch (Exception e) {
-   System.out.println(e.getMessage());
+   System.out.println("\r\nError: Could not build the FlashSeparator. \r\n\r\n" + e.getMessage());
    Menu.appendToMessages(e.getMessage() + "\r\n\r\n");
    Menu.appendToMessages("\r\nError: Could not build the FlashSeparator. \r\n\r\n");
   }
   
  }
- 
+
+/*********************************************************************************************************************/
+
  
 /**********************************************************************************************************************
 * 6) buildFlashSeparator() : Reads the species data and the user input from the
@@ -667,31 +782,39 @@ public class Menu {
    }
   }
   
+  // Create Behaviour Object
+  Behaviour behaviour;
+  switch (behaviourCase) {
+   case 0: // Ideal Behaviour
+    behaviour = new Behaviour();
+    break;
+    
+   case 1: // Non-Ideal Behaviour
+    behaviour = new NonIdealBehaviour();
+    break;
+
+   default: 
+    behaviour = new Behaviour();
+    break;
+  }
+  
   FlashSeparator flashSeparator;
   switch (flashCase) {
-
-  case 0: // Isothermal Non-Adiabatic Operation; Find Q
-   flashSeparator = new IsothermalHeat(T, P, F, z, speciesIndices);
-   break;
-
-  case 1: // Adiabatic Operation; Find the Flash Temperature
-   flashSeparator = new AdiabaticFlashTemp(T, P, F, z, speciesIndices);
-   break;
-
-  default: // Adiabatic Operation; Find the Feed Temperature
-   flashSeparator = new AdiabaticFeedTemp(T, P, F, z, speciesIndices);
-   break;
-  }
-
-  // Create Behaviour Object
-  switch (behaviourCase) {
-  case 0: // Ideal Behaviour
-   flashSeparator.setBehaviour(false);
-   break;
-
-  default: // Non-Ideal Behaviour
-   flashSeparator.setBehaviour(true);
-   break;
+   case 0: // Isothermal Non-Adiabatic Operation; Find Q
+    flashSeparator = new IsothermalHeat(T, P, F, z, speciesIndices, behaviour);
+    break;
+ 
+   case 1: // Adiabatic Operation; Find the Flash Temperature
+    flashSeparator = new AdiabaticFlashTemp(T, P, F, z, speciesIndices, behaviour);
+    break;
+ 
+   case 2: // Adiabatic Operation; Find the Feed Temperature
+    flashSeparator = new AdiabaticFeedTemp(T, P, F, z, speciesIndices, behaviour);
+    break;
+    
+   default:
+    flashSeparator = new IsothermalHeat(T, P, F, z, speciesIndices, behaviour);
+    break;
   }
 
   return flashSeparator;
@@ -700,7 +823,7 @@ public class Menu {
 
  
 /**********************************************************************************************************************
-* 6) outputToFile() : Prints a String to a text file.
+* 7) outputToFile() : Prints a String to a text file.
 * ----------------------------------------------------------------------------------------------------------------------
 */
  public static void outputToFile(String output, String outputFilePath, boolean append) {
@@ -719,7 +842,7 @@ public class Menu {
 
  
 /**********************************************************************************************************************
-* 7) getSpecies() : Returns a copy of the species at the given index.
+* 8) getSpecies() : Returns a copy of the species at the given index.
 * ----------------------------------------------------------------------------------------------------------------------
 */
  public static Species getSpecies(int speciesIndex) {
@@ -735,7 +858,27 @@ public class Menu {
 
 
 /**********************************************************************************************************************
-* 8) getSubGroupR() : Returns the relative volume of the sub-group at the given index.
+* 9) getSubGroupIndex() : Returns the sub-group index at position i.
+* ----------------------------------------------------------------------------------------------------------------------
+*/
+ public static int getSubGroupIndex(int i) {
+  return Menu.subGroupIndices[i];
+ }
+/*********************************************************************************************************************/
+
+
+/**********************************************************************************************************************
+* 10) getSubGroupTypeCount() : Returns the number of stored sub-groups.
+* ----------------------------------------------------------------------------------------------------------------------
+*/
+ public static int getSubGroupTypeCount() {
+  return Menu.subGroupIndices.length;
+ }
+/*********************************************************************************************************************/
+ 
+
+/**********************************************************************************************************************
+* 11) getSubGroupR() : Returns the relative volume of the sub-group at the given index.
 * ----------------------------------------------------------------------------------------------------------------------
 */
  public static double getSubGroupR(int subGroupIndex) {
@@ -750,7 +893,7 @@ public class Menu {
 
 
 /**********************************************************************************************************************
-* 9) getSubGroupQ() : Returns the relative surface area of the sub-group at the given index.
+* 12) getSubGroupQ() : Returns the relative surface area of the sub-group at the given index.
 * ----------------------------------------------------------------------------------------------------------------------
 */
  public static double getSubGroupQ(int subGroupIndex) {
@@ -765,7 +908,7 @@ public class Menu {
  
  
 /**********************************************************************************************************************
-* 10) getInteractionParameter() : Returns the interaction parameter of the subgroups i and j.
+* 13) getInteractionParameter() : Returns the interaction parameter of the subgroups i and j.
 * ----------------------------------------------------------------------------------------------------------------------
 */
  public static double getInteractionParameter(int i, int j) {
@@ -775,7 +918,7 @@ public class Menu {
 
  
 /**********************************************************************************************************************
-* 11.1) findRoot() :
+* 14.1) findRoot() :
 * ----------------------------------------------------------------------------------------------------------------------
 */
  public static double findRoot(Function f, double[] constants, double startPoint, 
@@ -793,7 +936,7 @@ public class Menu {
 
  
 /**********************************************************************************************************************
-* 11.2) findRoot() :
+* 14.2) findRoot() :
 * ----------------------------------------------------------------------------------------------------------------------
 */
  public static double findRoot(Function f, double[] constants, double startPoint, double endPoint,
@@ -810,7 +953,7 @@ public class Menu {
 
  
 /**********************************************************************************************************************
-* 11.3) findRoot() :
+* 14.3) findRoot() :
 * ----------------------------------------------------------------------------------------------------------------------
 */
  public static double findRoot(Function f, double[] constants, double startPoint, 
@@ -828,7 +971,7 @@ public class Menu {
 
  
 /**********************************************************************************************************************
-* 12) appendToMessages() :
+* 15) appendToMessages() :
 * ----------------------------------------------------------------------------------------------------------------------
 */
  public static void appendToMessages(String message) {
@@ -851,7 +994,7 @@ public class Menu {
 
  
 /**********************************************************************************************************************
-* 13) areArrayListElementsUnique() : Checks if all of the elements inside the ArrayList are unique.
+* 16) areArrayListElementsUnique() : Checks if all of the elements inside the ArrayList are unique.
 *           Returns true by default if the array is null;
 * ----------------------------------------------------------------------------------------------------------------------
 */

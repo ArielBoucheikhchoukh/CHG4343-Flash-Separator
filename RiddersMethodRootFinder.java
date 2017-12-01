@@ -6,7 +6,7 @@ public class RiddersMethodRootFinder extends BracketingRootFinder {
 */
 	public RiddersMethodRootFinder(double endPoint, double incrementLength, double subIncrementFraction, 
 			double maxEvaluationCount) {
-		super(endPoint, incrementLength, subIncrementFraction, maxEvaluationCount);
+		super("Ridders Method Root Finder", endPoint, incrementLength, subIncrementFraction, maxEvaluationCount);
 	}
 /*********************************************************************************************************************/
 
@@ -17,14 +17,34 @@ public class RiddersMethodRootFinder extends BracketingRootFinder {
 */
 	public RiddersMethodRootFinder(double incrementLength, double subIncrementFraction, 
 			boolean positiveDirection, double maxEvaluationCount, boolean useFunctionBounds) {
-		super(incrementLength, subIncrementFraction, positiveDirection, maxEvaluationCount, 
+		super("Ridders Method Root Finder", incrementLength, subIncrementFraction, positiveDirection, maxEvaluationCount, 
 				useFunctionBounds);
 	}
 /*********************************************************************************************************************/
 
+
+/**********************************************************************************************************************
+* 2) Copy Constructor
+* ----------------------------------------------------------------------------------------------------------------------
+*/
+	public RiddersMethodRootFinder(RiddersMethodRootFinder source) {
+		super(source);
+	}
+/*********************************************************************************************************************/
+	
+
+/**********************************************************************************************************************
+* 3) clone()
+* ----------------------------------------------------------------------------------------------------------------------
+*/
+	public RiddersMethodRootFinder clone() {
+		return new RiddersMethodRootFinder(this);
+	}
+/*********************************************************************************************************************/
+	
 	
 /**********************************************************************************************************************
-* 2) rootFindingMethod() : Finds and returns a root of function f.
+* 4) rootFindingMethod() : Finds and returns a root of function f.
 * ----------------------------------------------------------------------------------------------------------------------
 */
 	protected double rootFindingMethod(Function f, double[] constants, double startPoint,
@@ -56,7 +76,7 @@ public class RiddersMethodRootFinder extends BracketingRootFinder {
 				double error = 0.;
 				int iterationCount = 0;
 				do {
-					super.checkEvaluationCount();
+					super.checkEvaluationCount(f);
 					
 					double xM = 0.5 * (xL + xU);
 					double f_xM = f.evaluate(xM, constants);
@@ -118,11 +138,16 @@ public class RiddersMethodRootFinder extends BracketingRootFinder {
 				foundRoot = !super.checkForAsymptote(f, constants, xR, tolerance);
 			}
 			catch (FunctionException e) {
-				if (e instanceof UndefinedDependentVariableException) {
+				if (e instanceof UndefinedFunctionException) {
 					foundRoot = false;
 				} else {
 					throw e;
 				}
+			}
+			
+			if (tolerance == 1.0) {
+				@SuppressWarnings("unused")
+				int test = 0;
 			}
 			
 		} while (!foundRoot);

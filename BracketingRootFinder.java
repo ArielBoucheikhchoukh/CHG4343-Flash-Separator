@@ -15,9 +15,9 @@ public abstract class BracketingRootFinder extends RootFinder{
 * 1.1) Constructor A
 * ----------------------------------------------------------------------------------------------------------------------
 */
-	public BracketingRootFinder(double endPoint, double incrementLength, double subIncrementFraction, 
-			double maxEvaluationCount) {
-		super(maxEvaluationCount);
+	public BracketingRootFinder(String name, double endPoint, double incrementLength, 
+			double subIncrementFraction, double maxEvaluationCount) {
+		super(name, maxEvaluationCount);
 		this.endPoint = endPoint;
 		this.incrementLength = Math.abs(incrementLength);
 		this.subIncrementFraction = Math.abs(subIncrementFraction);
@@ -31,9 +31,9 @@ public abstract class BracketingRootFinder extends RootFinder{
 * 1.2) Constructor B
 * ----------------------------------------------------------------------------------------------------------------------
 */
-	public BracketingRootFinder(double incrementLength, double subIncrementFraction, 
+	public BracketingRootFinder(String name, double incrementLength, double subIncrementFraction, 
 			boolean positiveDirection, double maxEvaluationCount, boolean useFunctionBounds) {
-		super(maxEvaluationCount);
+		super(name, maxEvaluationCount);
 		this.incrementLength = Math.abs(incrementLength);
 		this.subIncrementFraction = Math.abs(subIncrementFraction);
 		
@@ -49,9 +49,32 @@ public abstract class BracketingRootFinder extends RootFinder{
 	}
 /*********************************************************************************************************************/
 
+
+/**********************************************************************************************************************
+* 2) Copy Constructor
+* ----------------------------------------------------------------------------------------------------------------------
+*/
+	public BracketingRootFinder(BracketingRootFinder source) {
+		super(source);
+		this.endPoint = source.endPoint;
+		this.incrementLength = source.incrementLength;
+		this.subIncrementFraction = source.subIncrementFraction;
+		this.direction = source.direction;
+		this.useFunctionBounds = source.useFunctionBounds;
+	}
+/*********************************************************************************************************************/
+	
+
+/**********************************************************************************************************************
+* 3) clone()
+* ----------------------------------------------------------------------------------------------------------------------
+*/
+	public abstract BracketingRootFinder clone();
+/*********************************************************************************************************************/
+	
 	
 /**********************************************************************************************************************
-* 2) findRoot() : Checks the integrity of the parameters and calls the root
+* 4) findRoot() : Checks the integrity of the parameters and calls the root
 * 					finding method. startPoint can either be taken to be the lower bound or
 * 					starting point of an incremental search, or as an initial guess.
 * ----------------------------------------------------------------------------------------------------------------------
@@ -118,7 +141,7 @@ public abstract class BracketingRootFinder extends RootFinder{
 
 	
 /**********************************************************************************************************************
-* 3) rootFindingMethod() : Finds a single root of function f; to be overridden
+* 5) rootFindingMethod() : Finds a single root of function f; to be overridden
 * 							by children of RootFinder.
 * ----------------------------------------------------------------------------------------------------------------------
 */
@@ -129,7 +152,7 @@ public abstract class BracketingRootFinder extends RootFinder{
 
 		
 /**********************************************************************************************************************
-* 4) incrementalSearch() : Returns an increment of function f within which a
+* 6) incrementalSearch() : Returns an increment of function f within which a
 * 							single root exists, as well as the current evaluation count; starts at xL and
 * 							moves up; to be used only by root finding methods that require bracketing.
 * 							returnParameters[0] = xL 
@@ -138,10 +161,6 @@ public abstract class BracketingRootFinder extends RootFinder{
 */
 	protected double[] incrementalSearch(Function f, double[] constants, double startBound,
 			double tolerance) throws NumericalMethodException, FunctionException {
-		
-		if (tolerance == 1. && this.endPoint > 464) {
-			double test = 0.;
-		}
 		
 		double endBound = startBound + (double) this.direction * this.incrementLength;
 		double[] bounds = new double[2];
@@ -152,7 +171,12 @@ public abstract class BracketingRootFinder extends RootFinder{
 			
 			if ((this.direction == 1 && startBound >= this.endPoint) 
 					|| (this.direction == -1 && startBound <= this.endPoint)) {
-				throw new NoRootFoundException();
+				String functionName = "Function";
+				if (f instanceof BoundedFunction) {
+					BoundedFunction boundedF = (BoundedFunction) f;
+					functionName = boundedF.getID();
+				}
+				throw new NoRootFoundException(super.getName(), functionName, this, f);
 			}
 			
 			if ((this.direction == 1 && endBound > this.endPoint) 
@@ -167,7 +191,7 @@ public abstract class BracketingRootFinder extends RootFinder{
 			boolean endOfBound = false;
 			do { 
 				// Search the increment within the error tolerance for all roots
-				this.checkEvaluationCount();
+				this.checkEvaluationCount(f);
 				super.setEvaluationCount(super.getEvaluationCount() + 1);
 				boolean evaluated = false;
 				do {
@@ -175,19 +199,17 @@ public abstract class BracketingRootFinder extends RootFinder{
 						newSign = Math.signum(f.evaluate(x, constants)); // update the sign of f(x)
 						evaluated = true;
 					} catch (FunctionException e) {
-						if (e instanceof UndefinedDependentVariableException) {
-							if (tolerance == 1. && this.endPoint > 464) {
-								@SuppressWarnings("unused")
-								int test = 0;
-							}
+						if (e instanceof UndefinedFunctionException) {
 							if (x != startBound) {
 								rootCount++;
+								evaluated = true;
 							} else {
 								startBound += (double) this.direction * Math.min(this.subIncrementFraction 
 										* length, tolerance);
 								x = startBound;
-								if (startBound > endBound) {
+								if ((this.direction == 1 && startBound > endBound) || (this.direction == -1 && startBound < endBound)) {
 									endOfBound = true;
+									break;
 								}
 							}
 						} else {
@@ -199,17 +221,9 @@ public abstract class BracketingRootFinder extends RootFinder{
 				if (x == startBound) {
 					sign = newSign;
 				}
-				if (tolerance == 1. && this.endPoint > 464) {
-					double test = 0.;
-				}
 				if (newSign != sign && !endOfBound) { // Check whether the signs of f(x_i) and f(x_i-1) differ
 					rootCount++; // If so, increase the root count
 					sign = newSign;
-					if (tolerance == 1. && this.endPoint > 464) {
-						@SuppressWarnings("unused")
-						int test = 0;
-					}
-					// System.out.println("Approximate root at x = " + x);
 				}
 				
 				if ((this.direction == 1 && x < endBound) || (this.direction == -1 && x > endBound)) {
@@ -223,23 +237,13 @@ public abstract class BracketingRootFinder extends RootFinder{
 				
 			} while (!endOfBound);
 
-			// System.out.println("Root count: " + rootCount);
 			if (rootCount == 0) { // In the case where no roots exist...
-				if (tolerance == 1. && this.endPoint > 464) {
-					@SuppressWarnings("unused")
-					double test = 0.;
-				}
-				
 				startBound += this.direction * length; // ... move on to the next increment
 				endBound = startBound + this.direction * this.incrementLength;
 				length = this.incrementLength;
 				// System.out.println("New xU = " + xU);
 			} else if (rootCount == 1) { // In the case where only a single root exists...
 				uniqueRoot = true; // ... exit the loop
-				
-				if (tolerance == 1. && this.endPoint > 464) {
-					double test = 0.;
-				}
 				
 				if (this.direction == 1) {
 					bounds[0] = startBound;
@@ -249,10 +253,6 @@ public abstract class BracketingRootFinder extends RootFinder{
 					bounds[1] = startBound;
 				}
 			} else { // In the case where multiple roots exist...
-				if (tolerance == 1.) {
-					double test = 0.;
-				}
-				
 				length /= 2; // ... halve the increment and restart
 				endBound = startBound + (double) this.direction * length;
 			}
@@ -262,9 +262,8 @@ public abstract class BracketingRootFinder extends RootFinder{
 	}
 /*********************************************************************************************************************/
 
-	
 	public double getEndPoint() {
-		return endPoint;
+		return this.endPoint;
 	}
 
 
@@ -274,7 +273,7 @@ public abstract class BracketingRootFinder extends RootFinder{
 
 
 	public double getIncrementLength() {
-		return incrementLength;
+		return this.incrementLength;
 	}
 
 
@@ -284,7 +283,7 @@ public abstract class BracketingRootFinder extends RootFinder{
 	
 	
 	public double getSubIncrementFraction() {
-		return subIncrementFraction;
+		return this.subIncrementFraction;
 	}
 
 
@@ -294,7 +293,7 @@ public abstract class BracketingRootFinder extends RootFinder{
 
 
 	public int getDirection() {
-		return direction;
+		return this.direction;
 	}
 
 
@@ -304,7 +303,7 @@ public abstract class BracketingRootFinder extends RootFinder{
 
 
 	public boolean isUseFunctionBounds() {
-		return useFunctionBounds;
+		return this.useFunctionBounds;
 	}
 
 

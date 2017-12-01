@@ -14,7 +14,15 @@ public class VapourPressure extends Correlation {
 	public VapourPressure(String id, double[] C, double minX, double maxX, int form) {
 		super(id, C, minX, maxX, form);
 	}
-
+	
+	public VapourPressure(VapourPressure source) {
+		super(source);
+	}
+	
+	public VapourPressure clone() {
+		return new VapourPressure(this);
+	}
+	
 	protected double evaluateWithinBounds(double x, double[] constants) {
 		double T = x;
 		
