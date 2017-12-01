@@ -1,5 +1,0 @@
-﻿Flash Case,Behaviour Case,Temperature (°C),Tank Pressure (bar),Flowrate (mol/h),
-2,0,144.85,5,1,
-Component,Mole Fraction,
-Hexane,0.4,
-Water,0.6,
