@@ -181,7 +181,7 @@ public class Menu {
             keyboardReader.next();
             break;
           case 2: // Prompt User to Read Instructions File
-            System.out.println("\r\nRefer to the Instructions.txt file. \r\n");
+            System.out.println("\r\nRefer to the User Guide. \r\n");
             break;
           default:
             exit = true;
