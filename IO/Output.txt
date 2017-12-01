@@ -1,85 +1,198 @@
 
 
-Simulation was successful. Flash separation was performed. 
+Simulation was successful. 
 
 
 
-Flash Separator: Adiabatic Feed Temperature - Ideal Behaviour 
-   Status: Feed stream was flashed into liquid and vapour phase streams. 
-   T = 418.00 K 
-   P = 5.00 bar 
+Flash Separator: Adiabatic Flash Temperature - Non-Ideal Behaviour 
+   Status: Feed stream was flashed into liquid and vapour-phase outlet streams. 
+   T = 458.68 K 
+   P = 29.00 bar 
    Q = 0.00 J/h 
 
 Feed Stream: 
-   T = 507.60 K 
+   T = 473.15 K 
    P = 10.00 bar 
    F = 1.00 mol/h 
-   Fraction of condensable moles = 60.00 % 
+   Fraction of condensable moles = 50.00 % 
    Fraction of condensable moles in the vapour phase = 0.00 % 
    Components: 
-      1. Hexane: 
-         x = 0.00% 
-         y = 0.00% 
-         z = 40.00% 
-      2. Water: 
-         x = 100.00% 
-         y = 0.00% 
-         z = 60.00% 
+      1. Ethane (1) : 
+            x = 0.00% 
+            y = 0.00% 
+            z = 20.00% 
+            gamma = 1.00 
+            phi = 1.00 
+      2. Pentane (2) : 
+            x = 0.00% 
+            y = 0.00% 
+            z = 10.00% 
+            gamma = 1.00 
+            phi = 1.00 
+      3. Hexane (3) : 
+            x = 40.00% 
+            y = 0.00% 
+            z = 20.00% 
+            gamma = 1.00 
+            phi = 1.00 
+      4. Cyclohexane (4) : 
+            x = 40.00% 
+            y = 0.00% 
+            z = 20.00% 
+            gamma = 1.00 
+            phi = 1.00 
+      5. Water (5) : 
+            x = 20.00% 
+            y = 0.00% 
+            z = 10.00% 
+            gamma = 1.00 
+            phi = 1.00 
+      6. Nitrogen (6) : 
+            x = 0.00% 
+            y = 0.00% 
+            z = 20.00% 
+            gamma = 1.00 
+            phi = 1.00 
 
 
 Flash Stream: 
-   T = 418.00 K 
-   P = 5.00 bar 
+   T = 458.68 K 
+   P = 29.00 bar 
    F = 1.00 mol/h 
-   Fraction of condensable moles = 100.00 % 
-   Fraction of condensable moles in the vapour phase = 53.47 % 
+   Fraction of condensable moles = 60.00 % 
+   Fraction of condensable moles in the vapour phase = 42.57 % 
+   Bubble-point P = 179,769,313,486,231,570,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000.00 bar 
+   Dew-point P = 19.87 bar 
    Components: 
-      1. Hexane: 
-         x = 33.85% 
-         y = 45.35% 
-         z = 40.00% 
-      2. Water: 
-         x = 66.15% 
-         y = 54.65% 
-         z = 60.00% 
+      1. Ethane (1) : 
+            x = 0.00% 
+            y = 0.00% 
+            z = 20.00% 
+            gamma = 0.81 
+            phi = 0.98 
+      2. Pentane (2) : 
+            x = 15.31% 
+            y = 18.50% 
+            z = 10.00% 
+            K = 1.21 
+            gamma = 1.01 
+            phi = 0.82 
+      3. Hexane (3) : 
+            x = 40.40% 
+            y = 23.80% 
+            z = 20.00% 
+            K = 0.59 
+            gamma = 1.01 
+            phi = 0.83 
+      4. Cyclohexane (4) : 
+            x = 43.71% 
+            y = 19.34% 
+            z = 20.00% 
+            K = 0.44 
+            gamma = 1.01 
+            phi = 0.83 
+      5. Water (5) : 
+            x = 0.58% 
+            y = 38.36% 
+            z = 10.00% 
+            K = 65.64 
+            gamma = 146.32 
+            phi = 0.87 
+      6. Nitrogen (6) : 
+            x = 0.00% 
+            y = 0.00% 
+            z = 20.00% 
+            gamma = 1.00 
+            phi = 1.07 
 
 
 Outlet Streams: 
 Liquid Phase: 
-   T = 418.00 K 
-   P = 5.00 bar 
-   F = 0.47 mol/h 
+   T = 458.68 K 
+   P = 29.00 bar 
+   F = 0.34 mol/h 
    Fraction of condensable moles = 100.00 % 
    Fraction of condensable moles in the vapour phase = 0.00 % 
    Components: 
-      1. Hexane: 
-         x = 33.85% 
-         y = 0.00% 
-         z = 33.85% 
-      2. Water: 
-         x = 66.15% 
-         y = 0.00% 
-         z = 66.15% 
+      1. Pentane (2) : 
+            x = 15.31% 
+            y = 0.00% 
+            z = 15.31% 
+            gamma = 1.00 
+            phi = 1.00 
+      2. Hexane (3) : 
+            x = 40.40% 
+            y = 0.00% 
+            z = 40.40% 
+            gamma = 1.00 
+            phi = 1.00 
+      3. Cyclohexane (4) : 
+            x = 43.71% 
+            y = 0.00% 
+            z = 43.71% 
+            gamma = 1.00 
+            phi = 1.00 
+      4. Water (5) : 
+            x = 0.58% 
+            y = 0.00% 
+            z = 0.58% 
+            gamma = 1.00 
+            phi = 1.00 
 
 Vapour/Gas Phase: 
-   T = 418.00 K 
-   P = 5.00 bar 
-   F = 0.53 mol/h 
-   Fraction of condensable moles = 100.00 % 
-   Fraction of condensable moles in the vapour phase = 100.00 % 
+   T = 458.68 K 
+   P = 29.00 bar 
+   F = 0.66 mol/h 
+   Fraction of condensable moles = 38.97 % 
+   Fraction of condensable moles in the vapour phase = 0.00 % 
    Components: 
-      1. Hexane: 
-         x = 0.00% 
-         y = 45.35% 
-         z = 45.35% 
-      2. Water: 
-         x = 0.00% 
-         y = 54.65% 
-         z = 54.65% 
+      1. Ethane (1) : 
+            x = 0.00% 
+            y = 30.51% 
+            z = 30.51% 
+            gamma = 1.00 
+            phi = 1.00 
+      2. Pentane (2) : 
+            x = 0.00% 
+            y = 7.21% 
+            z = 7.21% 
+            gamma = 1.00 
+            phi = 1.00 
+      3. Hexane (3) : 
+            x = 0.00% 
+            y = 9.28% 
+            z = 9.28% 
+            gamma = 1.00 
+            phi = 1.00 
+      4. Cyclohexane (4) : 
+            x = 0.00% 
+            y = 7.54% 
+            z = 7.54% 
+            gamma = 1.00 
+            phi = 1.00 
+      5. Water (5) : 
+            x = 0.00% 
+            y = 14.95% 
+            z = 14.95% 
+            gamma = 1.00 
+            phi = 1.00 
+      6. Nitrogen (6) : 
+            x = 0.00% 
+            y = 30.51% 
+            z = 30.51% 
+            gamma = 1.00 
+            phi = 1.00 
 
 
 
+Warning: Vapour Pressure of Hexane was evaluated outside of the function bounds.
+Warning: Vapour Pressure of Cyclohexane was evaluated outside of the function bounds.
+Warning: Vapour Pressure of Water was evaluated outside of the function bounds.
 Warning: Liquid-Phase Enthalpy of Hexane was evaluated outside of the function bounds.
+Warning: Liquid-Phase Enthalpy of Cyclohexane was evaluated outside of the function bounds.
+Warning: Liquid-Phase Enthalpy of Nitrogen was evaluated outside of the function bounds.
 Warning: Enthalpy Balance was evaluated outside of the function bounds.
+Warning: Vapour Pressure of Pentane was evaluated outside of the function bounds.
+Warning: Liquid-Phase Enthalpy of Pentane was evaluated outside of the function bounds.
 
 
