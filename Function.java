@@ -1,8 +1,28 @@
 public interface Function {
-
-	public double evaluate(double x, double[] constants) throws FunctionException;
-
-	public double evaluateDerivative(double x, double[] constants) throws FunctionException;
-	
-	public Function clone();
+  
+  /* Function Interface
+   * All functions must implement this interface to be compatible with RootFinder.
+   */
+  
+  /**********************************************************************************************************************
+    * 1) clone() 
+    * ---------------------------------------------------------------------------------------------------------------------
+    */
+  public Function clone();
+  /*********************************************************************************************************************/
+  
+  /**********************************************************************************************************************
+    * 2) evaluate() : Returns the result of the function evaluated at x.
+    *                  The RootFinder objects call this method when evaluating a function.
+    * ---------------------------------------------------------------------------------------------------------------------
+    */
+  public double evaluate(double x, double[] constants) throws FunctionException;
+  /*********************************************************************************************************************/
+  
+  /**********************************************************************************************************************
+    * 3) evaluateDerivative() : Returns the result of the derivative of the function evaluated at x.
+    * ---------------------------------------------------------------------------------------------------------------------
+    */
+  public double evaluateDerivative(double x, double[] constants) throws FunctionException;
+  /*********************************************************************************************************************/
 }

@@ -4,53 +4,97 @@
  */
 
 public class VapourPressure extends Correlation {
-
-	public static final int CONSTANT_COUNT = 5;
-
-	public VapourPressure(String id) {
-		super(id);
-	}
-
-	public VapourPressure(String id, double[] C, double minX, double maxX, int form) {
-		super(id, C, minX, maxX, form);
-	}
-	
-	public VapourPressure(VapourPressure source) {
-		super(source);
-	}
-	
-	public VapourPressure clone() {
-		return new VapourPressure(this);
-	}
-	
-	protected double evaluateWithinBounds(double x, double[] constants) {
-		double T = x;
-		
-		double P = 0.;
-		if (constants != null && constants.length > 0) {
-			P = constants[0];
-		}
-		
-		double[] C = super.getC();
-
-		return -P + (1. / 100000.) * Math.pow(Math.E, 
-											C[0] 
-											+ C[1] / T 
-											+ C[2] * Math.log(T) 
-											+ C[3] * Math.pow(T, C[4]));
-	}
-
-	protected double evaluateDerivativeWithinBounds(double x, double[] constants) {
-		double T = x;
-		double[] C = super.getC();
-
-		return (1. / 100000.) * (-C[1] / Math.pow(T, 2) + C[2] / T + C[3] * C[4] * Math.pow(T, C[4] - 1))
-				* Math.pow(Math.E, C[0] + C[1] / T + C[2] * Math.log(T) + C[3] * Math.pow(T, C[4]));
-	}
-	
-	
-	public int getConstantCount() {
-		return VapourPressure.CONSTANT_COUNT;
-	}
-
+  
+  public static final int CONSTANT_COUNT = 5;
+  
+  /**********************************************************************************************************************
+    * 1.1) Constructor A
+    * ---------------------------------------------------------------------------------------------------------------------
+    */
+  public VapourPressure(String id) {
+    super(id);
+  }
+  /*********************************************************************************************************************/
+  
+  
+  /**********************************************************************************************************************
+    * 1.2) Constructor B
+    * ---------------------------------------------------------------------------------------------------------------------
+    */
+  public VapourPressure(String id, double[] C, double minX, double maxX, int form) {
+    super(id, C, minX, maxX, form);
+  }
+  /*********************************************************************************************************************/
+  
+  
+  /**********************************************************************************************************************
+    * 2) Copy Constructor
+    * ---------------------------------------------------------------------------------------------------------------------
+    */
+  public VapourPressure(VapourPressure source) {
+    super(source);
+  }
+  /*********************************************************************************************************************/
+  
+  
+  /**********************************************************************************************************************
+    * 3) clone()
+    * ---------------------------------------------------------------------------------------------------------------------
+    */
+  public VapourPressure clone() {
+    return new VapourPressure(this);
+  }
+  /*********************************************************************************************************************/
+  
+  
+  /**********************************************************************************************************************
+    * 4) evaluateWithinBounds() : Calculates vapour pressure at temperature T.
+    *                               constants[0] = Target Vapour Pressure
+    *    If the saturation temperature for a given pressure needs to be solved for, pass the pressure in the first
+    *    element of the constants array.
+    * ---------------------------------------------------------------------------------------------------------------------
+    */
+  protected double evaluateWithinBounds(double x, double[] constants) {
+    double T = x;
+    
+    double P = 0.; // Target Vapour Pressure: to be used with RootFinder to calculate Saturation Temperature for a given P
+    if (constants != null && constants.length > 0) {
+      P = constants[0];
+    }
+    
+    double[] C = super.getC();
+    
+    return -P + (1. / 100000.) * Math.pow(Math.E, 
+                                          C[0] 
+                                            + C[1] / T 
+                                            + C[2] * Math.log(T) 
+                                            + C[3] * Math.pow(T, C[4]));
+  }
+  /*********************************************************************************************************************/
+  
+  
+  /**********************************************************************************************************************
+    * 5) evaluateDerivativeWithinBounds()
+    * ---------------------------------------------------------------------------------------------------------------------
+    */
+  protected double evaluateDerivativeWithinBounds(double x, double[] constants) {
+    double T = x;
+    double[] C = super.getC();
+    
+    return (1. / 100000.) * (-C[1] / Math.pow(T, 2) + C[2] / T + C[3] * C[4] * Math.pow(T, C[4] - 1))
+      * Math.pow(Math.E, C[0] + C[1] / T + C[2] * Math.log(T) + C[3] * Math.pow(T, C[4]));
+  }
+  /*********************************************************************************************************************/
+  
+  
+  /**********************************************************************************************************************
+    * 6) getConstantCount() : Return number of constants.
+    * ---------------------------------------------------------------------------------------------------------------------
+    */
+  public int getConstantCount() {
+    return VapourPressure.CONSTANT_COUNT;
+  }
+  /*********************************************************************************************************************/
+  
+  
 }
